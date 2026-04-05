@@ -1,0 +1,21 @@
+# ratatui-themekit
+
+Semantic theme system for ratatui TUI applications.
+
+## What it does
+- Theme trait with 20 semantic color slots (accent, text, success, error, etc.)
+- 9 built-in themes (Catppuccin, Dracula, Nord, Gruvbox, OneDark, Solarized, Tailwind, Terminal, NoColor)
+- CustomTheme with serde for user-defined themes from config files
+- NO_COLOR environment variable support
+- resolve_theme(id) for runtime theme switching
+
+## Quick start
+```rust
+use ratatui_themekit::{Theme, resolve_theme};
+let theme = resolve_theme("catppuccin");
+let style = ratatui::style::Style::default().fg(theme.accent());
+```
+
+## Links
+- Repository: https://github.com/diegorodrigo90/ratatui-themekit
+- Docs: https://docs.rs/ratatui-themekit
