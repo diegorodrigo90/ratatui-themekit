@@ -92,7 +92,8 @@ use ratatui::style::Color;
 
 // Re-export all built-in themes
 pub use themes::{
-    CatppuccinMocha, Dracula, GruvboxDark, NoColor, Nord, OneDark, SolarizedDark, TerminalNative,
+    CatppuccinMocha, Dracula, GruvboxDark, NoColor, Nord, OneDark, SolarizedDark, TailwindDark,
+    TerminalNative,
 };
 
 // Re-export custom theme (serde-powered user themes)
@@ -255,6 +256,7 @@ pub fn resolve_theme(id: &str) -> Box<dyn Theme> {
         "gruvbox" => Box::new(GruvboxDark),
         "one-dark" => Box::new(OneDark),
         "solarized" => Box::new(SolarizedDark),
+        "tailwind" => Box::new(TailwindDark),
         "terminal" => Box::new(TerminalNative),
         "no-color" => Box::new(NoColor),
         // "catppuccin" and any unknown ID → default theme
@@ -272,6 +274,7 @@ pub fn builtin_themes() -> Vec<Box<dyn Theme>> {
         Box::new(GruvboxDark),
         Box::new(OneDark),
         Box::new(SolarizedDark),
+        Box::new(TailwindDark),
         Box::new(TerminalNative),
     ]
 }
@@ -286,6 +289,7 @@ pub fn available_theme_ids() -> Vec<&'static str> {
         "gruvbox",
         "one-dark",
         "solarized",
+        "tailwind",
         "terminal",
     ]
 }
