@@ -328,6 +328,64 @@ impl Theme for SolarizedDark {
     }
 }
 
+/// Tailwind Dark — built from ratatui's Tailwind CSS palette.
+///
+/// Uses `ratatui::style::palette::tailwind` constants directly.
+/// These are the exact Tailwind CSS colors — widely recognized
+/// and battle-tested for UI design.
+pub struct TailwindDark;
+
+impl Theme for TailwindDark {
+    fn name(&self) -> &'static str {
+        "Tailwind Dark"
+    }
+    fn id(&self) -> &'static str {
+        "tailwind"
+    }
+    fn accent(&self) -> Color {
+        ratatui::style::palette::tailwind::BLUE.c400
+    }
+    fn accent_dim(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c500
+    }
+    fn text(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c200
+    }
+    fn text_dim(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c500
+    }
+    fn text_bright(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c50
+    }
+    fn success(&self) -> Color {
+        ratatui::style::palette::tailwind::EMERALD.c400
+    }
+    fn error(&self) -> Color {
+        ratatui::style::palette::tailwind::RED.c400
+    }
+    fn warning(&self) -> Color {
+        ratatui::style::palette::tailwind::AMBER.c400
+    }
+    fn info(&self) -> Color {
+        ratatui::style::palette::tailwind::CYAN.c400
+    }
+    fn diff_added(&self) -> Color {
+        ratatui::style::palette::tailwind::GREEN.c400
+    }
+    fn diff_removed(&self) -> Color {
+        ratatui::style::palette::tailwind::RED.c400
+    }
+    fn diff_context(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c500
+    }
+    fn border(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c700
+    }
+    fn surface(&self) -> Color {
+        ratatui::style::palette::tailwind::SLATE.c800
+    }
+}
+
 /// Terminal-native theme — uses ANSI named colors.
 ///
 /// Instead of hardcoding RGB values, this theme uses the 16 standard
