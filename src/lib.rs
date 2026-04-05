@@ -358,4 +358,80 @@ mod tests {
         assert_eq!(t.error(), ratatui::style::Color::Reset);
         assert_eq!(t.border(), ratatui::style::Color::Reset);
     }
+
+    #[test]
+    fn every_builtin_has_distinct_status_colors() {
+        for theme in builtin_themes() {
+            assert_ne!(
+                theme.success(),
+                theme.error(),
+                "theme '{}' has same success and error",
+                theme.id()
+            );
+        }
+    }
+
+    #[test]
+    fn every_builtin_has_distinct_diff_colors() {
+        for theme in builtin_themes() {
+            assert_ne!(
+                theme.diff_added(),
+                theme.diff_removed(),
+                "theme '{}' has same diff_added and diff_removed",
+                theme.id()
+            );
+        }
+    }
+
+    #[test]
+    fn terminal_native_uses_named_colors() {
+        let t = TerminalNative;
+        assert_eq!(t.success(), ratatui::style::Color::Green);
+        assert_eq!(t.error(), ratatui::style::Color::Red);
+        assert_eq!(t.accent(), ratatui::style::Color::Blue);
+    }
+
+    #[test]
+    fn tailwind_dark_uses_palette_constants() {
+        let t = TailwindDark;
+        // Tailwind colors are RGB — just verify they're not Reset or named
+        assert_ne!(t.accent(), ratatui::style::Color::Reset);
+        assert_ne!(t.success(), ratatui::style::Color::Reset);
+    }
+
+    #[test]
+    fn resolve_all_known_ids() {
+        for id in available_theme_ids() {
+            let theme = resolve_theme(id);
+            assert_eq!(theme.id(), id, "resolve_theme({id}) returned wrong theme");
+        }
+    }
+
+    #[test]
+    fn custom_theme_implements_trait() {
+        let custom = CustomTheme {
+            name: "Test".to_owned(),
+            id: "test".to_owned(),
+            accent: ratatui::style::Color::Magenta,
+            accent_dim: ratatui::style::Color::DarkGray,
+            text: ratatui::style::Color::White,
+            text_dim: ratatui::style::Color::Gray,
+            text_bright: ratatui::style::Color::White,
+            success: ratatui::style::Color::Green,
+            error: ratatui::style::Color::Red,
+            warning: ratatui::style::Color::Yellow,
+            info: ratatui::style::Color::Cyan,
+            diff_added: ratatui::style::Color::Green,
+            diff_removed: ratatui::style::Color::Red,
+            diff_context: ratatui::style::Color::DarkGray,
+            border: ratatui::style::Color::DarkGray,
+            surface: ratatui::style::Color::Black,
+        };
+        let theme: &dyn Theme = &custom;
+        assert_eq!(theme.name(), "Test");
+        assert_eq!(theme.id(), "test");
+        assert_eq!(theme.accent(), ratatui::style::Color::Magenta);
+        // Derived methods work
+        assert_eq!(theme.block_pass(), theme.success());
+    }
 }

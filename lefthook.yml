@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    fmt:
+      run: cargo fmt --check
+    clippy:
+      run: cargo clippy --all-targets -- -D warnings
+
+commit-msg:
+  commands:
+    format:
+      run: |
+        msg=$(cat {1})
+        if ! echo "$msg" | grep -qE '^(feat|fix|refactor|test|docs|chore|ci|perf|style)(\(.+\))?: .+'; then
+          echo "Commit message must follow conventional format: type(scope): description"
+          exit 1
+        fi
