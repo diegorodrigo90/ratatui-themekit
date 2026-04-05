@@ -13,8 +13,13 @@ categories = ["command-line-interface"]
 readme = "README.md"
 authors = ["Diego Rodrigo <diegorodrigo90@gmail.com>"]
 
+[features]
+default = []
+serde = ["dep:serde", "ratatui/serde"]
+
 [dependencies]
 ratatui = "0.30"
+serde = { version = "1", features = ["derive"], optional = true }
 
 [lints.rust]
 missing_docs = "warn"
