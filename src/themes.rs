@@ -328,6 +328,68 @@ impl Theme for SolarizedDark {
     }
 }
 
+/// Terminal-native theme — uses ANSI named colors.
+///
+/// Instead of hardcoding RGB values, this theme uses the 16 standard
+/// ANSI colors (`Color::Red`, `Color::Green`, etc.). These colors
+/// are defined by the user's terminal emulator theme — if they have
+/// Catppuccin, Dracula, or Nord installed in their terminal, this
+/// theme automatically matches.
+///
+/// Best for: apps that should "blend in" with the user's terminal.
+pub struct TerminalNative;
+
+impl Theme for TerminalNative {
+    fn name(&self) -> &'static str {
+        "Terminal Native"
+    }
+    fn id(&self) -> &'static str {
+        "terminal"
+    }
+    fn accent(&self) -> Color {
+        Color::Blue
+    }
+    fn accent_dim(&self) -> Color {
+        Color::DarkGray
+    }
+    fn text(&self) -> Color {
+        Color::White
+    }
+    fn text_dim(&self) -> Color {
+        Color::Gray
+    }
+    fn text_bright(&self) -> Color {
+        Color::White
+    }
+    fn success(&self) -> Color {
+        Color::Green
+    }
+    fn error(&self) -> Color {
+        Color::Red
+    }
+    fn warning(&self) -> Color {
+        Color::Yellow
+    }
+    fn info(&self) -> Color {
+        Color::Cyan
+    }
+    fn diff_added(&self) -> Color {
+        Color::Green
+    }
+    fn diff_removed(&self) -> Color {
+        Color::Red
+    }
+    fn diff_context(&self) -> Color {
+        Color::DarkGray
+    }
+    fn border(&self) -> Color {
+        Color::DarkGray
+    }
+    fn surface(&self) -> Color {
+        Color::Black
+    }
+}
+
 /// `NO_COLOR` compliant theme — all colors reset.
 ///
 /// Used when `NO_COLOR` env var is set. Safe for pipes, CI,
