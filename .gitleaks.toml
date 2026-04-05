@@ -1,0 +1,4 @@
+title = "ratatui-themekit gitleaks config"
+
+[allowlist]
+description = "No secrets expected in a theme library"
