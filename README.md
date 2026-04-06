@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/ratatui-themekit.svg)](https://crates.io/crates/ratatui-themekit)
 [![docs.rs](https://docs.rs/ratatui-themekit/badge.svg)](https://docs.rs/ratatui-themekit)
+[![CI](https://github.com/diegorodrigo90/ratatui-themekit/actions/workflows/ci.yml/badge.svg)](https://github.com/diegorodrigo90/ratatui-themekit/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Semantic theme system for [ratatui](https://ratatui.rs).**
@@ -19,9 +20,14 @@ let err = Style::default().fg(Color::Rgb(243, 139, 168));   // hope I remember
 ## The Solution
 
 ```rust
-// With themekit — semantic, consistent, swappable
-let style = Style::default().fg(theme.success());  // always the right green
-let err = Style::default().fg(theme.error());      // always the right red
+use ratatui_themekit::{Theme, ThemeExt, CatppuccinMocha};
+
+let t = CatppuccinMocha;
+
+// Tailwind-like builders — semantic, chainable, themed
+let title = t.fg_accent("Ralph Engine").bold().build();
+let ok    = t.fg_success("Passing").bold().build();
+let hint  = t.fg_dim("press ? for help").build();
 ```
 
 ## Quick Start
@@ -31,17 +37,80 @@ cargo add ratatui-themekit
 ```
 
 ```rust
-use ratatui::style::Style;
-use ratatui_themekit::{Theme, resolve_theme};
+use ratatui::text::Line;
+use ratatui_themekit::{Theme, ThemeExt, resolve_theme};
 
-// Resolve from user config
 let theme = resolve_theme("catppuccin");
+let t = theme.as_ref();
 
-// Use semantic slots everywhere
-let header = Style::default().fg(theme.accent()).bold();
-let status = Style::default().fg(theme.success());
-let border = Style::default().fg(theme.border());
-let dimmed = Style::default().fg(theme.text_dim());
+// Build themed spans — never touch Style::default() again
+let header = Line::from(vec![
+    t.fg_accent("App v1.0").bold().build(),
+    t.fg_border(" | ").build(),
+    t.fg_bright("Ready").build(),
+]);
+
+// Widget styles (border_style, title_style)
+let border = t.style_border();
+let title = t.style_accent();
+```
+
+## ThemeExt Builders (Tailwind-like API)
+
+Import `ThemeExt` to get chainable builders on any `Theme`:
+
+```rust
+use ratatui_themekit::{Theme, ThemeExt, CatppuccinMocha};
+
+let t = CatppuccinMocha;
+
+// Semantic span builders — color from theme slot
+t.fg_accent("title")           // accent color
+t.fg_dim("hint")               // dimmed text
+t.fg_bright("emphasis")        // bright text
+t.fg_success("ok").bold()      // success + bold
+t.fg_error("fail").italic()    // error + italic
+t.fg_warning("warn")           // warning
+t.fg_info("note")              // informational
+t.fg_added("+line")            // diff added
+t.fg_removed("-line")          // diff removed
+t.fg_border("---")             // border/separator
+
+// Modifiers chain
+t.fg_accent("title").bold().italic().build()
+
+// Background color
+t.fg_accent("badge").on(Color::Red).build()
+
+// Badge (text on colored background)
+t.badge(" RUNNING ", Color::Green).build()
+
+// Progress bar
+t.bar(75).width(20).build()  // ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▱▱▱▱▱ 75%
+
+// Separator line
+t.separator_line(40)  // · · · · · · · · · · · ·
+
+// Style helpers for widget APIs (border_style, title_style)
+t.style_accent()    // Style with accent fg
+t.style_border()    // Style with border fg
+t.style_error()     // Style with error fg
+t.style_warning()   // Style with warning fg
+```
+
+### Dynamic Colors
+
+For colors not from a named theme slot (e.g., computed at runtime):
+
+```rust
+use ratatui_themekit::builders::{ThemedSpan, style_fg};
+
+// Dynamic color span
+let block_color = theme.block_file_edit();
+ThemedSpan::with_color("text", block_color).bold().build()
+
+// Dynamic color style (for widgets)
+style_fg(block_color)
 ```
 
 ## 20 Semantic Color Slots
@@ -55,21 +124,23 @@ let dimmed = Style::default().fg(theme.text_dim());
 | **Structure** | `border`, `surface` | Panel borders, focused backgrounds |
 | **Derived** | `block_*`, `indicator_*` | Auto-derived from core slots |
 
-## 7 Built-in Themes
+## 9 Built-in Themes
 
 | Theme | ID | Style |
 |-------|----|-------|
-| **Catppuccin Mocha** | `catppuccin` | Warm dark, pastel accents |
+| **Catppuccin Mocha** | `catppuccin` | Warm dark, pastel accents (default) |
 | **Dracula** | `dracula` | Dark, vivid purples and greens |
 | **Nord** | `nord` | Arctic blue-gray, calm |
 | **Gruvbox Dark** | `gruvbox` | Retro warm, earthy tones |
 | **One Dark** | `one-dark` | Atom's classic blue |
 | **Solarized Dark** | `solarized` | Precision-engineered |
+| **Tailwind Dark** | `tailwind` | Tailwind CSS palette |
+| **Terminal Native** | `terminal` | Named ANSI colors only |
 | **No Color** | `no-color` | All `Color::Reset` for `NO_COLOR` |
 
 ## Custom Themes
 
-Implement the `Theme` trait — 15 required methods, 5+ derived automatically:
+Implement the `Theme` trait — 15 required methods, 10+ derived automatically:
 
 ```rust
 use ratatui::style::Color;
@@ -95,6 +166,29 @@ impl Theme for TokyoNight {
     fn border(&self) -> Color { Color::Rgb(41, 46, 66) }
     fn surface(&self) -> Color { Color::Rgb(30, 32, 48) }
 }
+// All ThemeExt builders work automatically!
+```
+
+### Serde Custom Themes
+
+Load themes from config files with the `serde` feature:
+
+```bash
+cargo add ratatui-themekit --features serde
+```
+
+```rust
+use ratatui_themekit::CustomTheme;
+
+let toml = r#"
+name = "My Theme"
+id = "my-theme"
+accent = { Rgb = [249, 115, 22] }
+success = "Green"
+error = "Red"
+"#;
+
+let theme: CustomTheme = toml::from_str(toml).unwrap();
 ```
 
 ## NO_COLOR Support
@@ -102,36 +196,32 @@ impl Theme for TokyoNight {
 Automatically respects the [NO_COLOR](https://no-color.org/) standard:
 
 ```rust
-use ratatui_themekit::{resolve_theme, no_color_active};
+use ratatui_themekit::resolve_theme;
 
 // When NO_COLOR is set, resolve_theme returns NoColor automatically
-let theme = resolve_theme("catppuccin"); // returns NoColor if NO_COLOR is set
-
-// Or check manually
-if no_color_active() {
-    println!("Colors disabled by environment");
-}
+let theme = resolve_theme("catppuccin"); // → NoColor if NO_COLOR is set
 ```
 
 ## Runtime Theme Switching
 
 ```rust
-use ratatui_themekit::{Theme, resolve_theme, available_theme_ids};
+use ratatui_themekit::{resolve_theme, available_theme_ids};
 
 // List available themes for a settings menu
 for id in available_theme_ids() {
-    println!("{}", id);
+    println!("{id}");
 }
 
 // Switch at runtime — zero code changes needed
-let mut current_theme = resolve_theme("catppuccin");
-current_theme = resolve_theme("dracula"); // instant switch
+let mut current = resolve_theme("catppuccin");
+current = resolve_theme("dracula"); // instant
 ```
 
 ## Design Philosophy
 
 - **Semantic over literal** — slots describe meaning, not appearance
-- **Derived defaults** — implement 15 methods, get 20+ color slots
+- **Builders over manual styling** — `t.fg_accent("x").bold()` not `Span::styled("x", Style::default().fg(...))`
+- **Derived defaults** — implement 15 methods, get 25+ color slots
 - **Zero opinion on layout** — only colors, never widget structure
 - **`NO_COLOR` native** — accessibility built in, not bolted on
 - **`Send + Sync`** — safe for async TUI architectures

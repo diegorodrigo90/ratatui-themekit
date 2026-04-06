@@ -185,7 +185,7 @@ impl<'a> ThemedSpan<'a> {
         }
     }
 
-    /// Internal constructor used by ThemeExt methods.
+    /// Internal constructor used by `ThemeExt` methods.
     pub(crate) fn new(text: impl Into<std::borrow::Cow<'a, str>>, fg: Color) -> Self {
         Self::with_color(text, fg)
     }

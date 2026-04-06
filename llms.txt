@@ -5,15 +5,34 @@ Semantic theme system for ratatui TUI applications.
 ## What it does
 - Theme trait with 20 semantic color slots (accent, text, success, error, etc.)
 - 9 built-in themes (Catppuccin, Dracula, Nord, Gruvbox, OneDark, Solarized, Tailwind, Terminal, NoColor)
+- ThemeExt builders: Tailwind-like API for themed spans (fg_accent, fg_dim, fg_success, bold, italic, etc.)
+- ThemedSpan::with_color for dynamic colors not from named slots
+- style_* helpers for widget APIs (border_style, title_style)
+- style_fg(color) for dynamic Style creation
+- ThemedBar: progress bar builder with customizable width
+- badge() builder for text on colored background
+- separator_line() for themed separators
 - CustomTheme with serde for user-defined themes from config files
 - NO_COLOR environment variable support
 - resolve_theme(id) for runtime theme switching
 
 ## Quick start
 ```rust
-use ratatui_themekit::{Theme, resolve_theme};
+use ratatui_themekit::{Theme, ThemeExt, resolve_theme};
 let theme = resolve_theme("catppuccin");
-let style = ratatui::style::Style::default().fg(theme.accent());
+let t = theme.as_ref();
+
+// Span builders
+let title = t.fg_accent("Title").bold().build();
+let hint = t.fg_dim("hint").build();
+
+// Widget styles
+let border = t.style_border();
+
+// Dynamic colors
+use ratatui_themekit::builders::{ThemedSpan, style_fg};
+ThemedSpan::with_color("text", color).bold().build();
+style_fg(color); // for border_style etc.
 ```
 
 ## Links
