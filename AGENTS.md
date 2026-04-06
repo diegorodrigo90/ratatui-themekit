@@ -4,19 +4,22 @@ Operational contract for AI coding assistants working on this repository.
 
 ## Golden Rules
 
-1. ALL colors go through `Theme` trait slots — zero hardcoded `Color::Rgb(...)` or `Color::Red` in render code
-2. Every public item has doc comments with examples
+1. ALL colors go through `Theme` trait slots — zero hardcoded `Color::Rgb(...)` or `Color::Red`
+2. Every public item has doc comments
 3. `Send + Sync` required on all Theme implementations
 4. `NO_COLOR` must always be respected
 5. Every built-in theme has tests verifying distinct status/diff colors
 6. Conventional commits: `type(scope): description`
+7. Files max 300 lines, single responsibility
+8. `interactive: true` in lefthook for all cargo commands
 
 ## Quality Gates (MANDATORY before commit)
 
 ```bash
+./scripts/validate.sh       # Full validation (or manually below)
 cargo fmt --check            # Zero formatting issues
 cargo clippy --all-targets   # Zero warnings (pedantic enabled)
-cargo test                   # All tests pass
+cargo test --all-features    # All tests pass (including serde)
 cargo doc --no-deps          # No doc warnings
 cargo deny check             # License + advisory + source check
 ```
@@ -25,33 +28,41 @@ cargo deny check             # License + advisory + source check
 
 ```
 src/
-  lib.rs       — Theme trait, resolve helpers, NO_COLOR, tests
-  themes.rs    — Built-in theme implementations (9 themes)
-  custom.rs    — CustomTheme with serde for user config files
+├── lib.rs              ← re-exports + integration tests
+├── theme_trait.rs      ← Theme trait (15 required + 10 derived)
+├── resolve.rs          ← resolve_theme(), builtin_themes(), no_color_active()
+├── builders/
+│   ├── mod.rs          ← ThemeExt trait + style_* helpers
+│   ├── span.rs         ← ThemedSpan builder
+│   └── bar.rs          ← ThemedBar builder
+└── themes/
+    ├── mod.rs           ← ThemeData struct + BUILTIN_THEMES registry
+    ├── <theme_name>.rs  ← one file per theme (25 lines each)
+    └── custom.rs        ← CustomTheme (serde runtime themes)
 ```
 
 ## Adding a New Theme
 
-1. Add struct in `src/themes.rs` implementing `Theme` trait
-2. Register in `resolve_theme()` match arms
-3. Add to `builtin_themes()` and `available_theme_ids()`
-4. Add tests: distinct status colors, distinct diff colors
+1. Create `src/themes/<name>.rs` with `pub const NAME: ThemeData = ThemeData { ... };`
+2. In `src/themes/mod.rs`: add `mod <name>;`, `pub use <name>::NAME;`, add to `BUILTIN_THEMES`
+3. In `src/lib.rs` aliases: add `pub const PascalName: ThemeData = NAME;`
+4. Tests auto-validate all themes in the registry
 5. Update README theme table
-6. Update CHANGELOG
 
 ## Design Principles
 
 - **Semantic over literal**: slots describe meaning (`success`), not appearance (`green`)
-- **Derived defaults**: 15 required methods → 20+ total (derived are overridable)
+- **Data-driven themes**: `ThemeData` struct, not code repetition
+- **Single registry**: `BUILTIN_THEMES` is the single source of truth
+- **Derived defaults**: 15 required → 25+ total (derived are overridable)
 - **Zero opinion on layout**: only colors, never widget structure
 - **Trait-based extensibility**: any app can implement custom themes
-- **NO_COLOR native**: accessibility built in, not bolted on
+- **`NO_COLOR` native**: accessibility built in, not bolted on
 
 ## Code Standards
 
-- Rust 2024 edition
-- Clippy pedantic enabled (`clippy::pedantic` at warn level)
-- All public items documented with `///` doc comments
-- Builder functions use `impl Into<String>` for ergonomics
-- Tests for every public function and every theme
+- Rust 2024 edition, clippy pedantic
+- All public items documented with `///`
 - `#[must_use]` on all pure functions
+- Tests colocated in each file
+- No git co-author footers

@@ -4,42 +4,53 @@
 
 `ratatui-themekit` — semantic theme system for [ratatui](https://ratatui.rs) TUI applications.
 
-Part of the [Ralph Engine](https://ralphengine.com) ecosystem, extracted as a standalone crate for the ratatui community.
-
 ## Commands
 
 ```bash
 cargo build                 # Build
-cargo test                  # Run all tests
+cargo test --all-features   # Run all tests (including serde)
 cargo clippy --all-targets  # Lint (pedantic)
 cargo fmt                   # Format
 cargo doc --open            # Generate and view docs
-cargo deny check            # License + advisory check
+cargo run --example showcase  # Run showcase example
+./scripts/validate.sh       # Full validation (fmt + clippy + test + deny + rustdoc)
 ```
 
 ## Architecture
 
 ```
 src/
-  lib.rs       — Theme trait (20 slots), resolve helpers, NO_COLOR
-  themes.rs    — 9 built-in themes (Catppuccin, Dracula, Nord, ...)
-  custom.rs    — CustomTheme with serde for user configs
+├── lib.rs              ← re-exports + integration tests
+├── theme_trait.rs      ← Theme trait (15 required + 10 derived methods)
+├── resolve.rs          ← resolve_theme(), builtin_themes(), no_color_active()
+├── builders/
+│   ├── mod.rs          ← ThemeExt trait + style helpers
+│   ├── span.rs         ← ThemedSpan (chainable span builder)
+│   └── bar.rs          ← ThemedBar (progress bar builder)
+└── themes/
+    ├── mod.rs           ← ThemeData struct + BUILTIN_THEMES registry
+    ├── catppuccin_mocha.rs  ← 1 theme = 1 file = 25 lines
+    ├── dracula.rs
+    ├── ... (11 themes total)
+    └── custom.rs        ← CustomTheme (serde, runtime user themes)
 ```
 
 ## Rules
 
-- ALL colors through Theme trait — zero hardcoded `Color::*` in consuming code
-- Theme trait: 15 required + 5+ derived methods
+- ALL colors through Theme trait — zero hardcoded `Color::*`
+- Theme trait: 15 required + 10 derived methods
 - `Send + Sync` required on implementations
 - `NO_COLOR` always respected
 - Every public item has doc comments
 - Clippy pedantic — zero warnings
 - Conventional commits
+- Files max 300 lines, single responsibility
+- `interactive: true` in lefthook for cargo commands (prevents jobserver deadlock)
 
-## Key Design Decisions
+## Adding a New Theme
 
-- **Trait over struct**: `Theme` is a trait, not a struct — apps can implement custom themes
-- **Derived defaults**: `block_pass()` defaults to `success()` — override only when needed
-- **TailwindDark**: uses `ratatui::style::palette::tailwind` constants directly
-- **TerminalNative**: uses ANSI named colors — respects user's terminal theme
-- **CustomTheme**: serde-powered, all fields optional with sensible defaults
+1. Create `src/themes/my_theme.rs` with a `pub const MY_THEME: ThemeData`
+2. Add `mod my_theme;` and `pub use my_theme::MY_THEME;` in `src/themes/mod.rs`
+3. Add `MY_THEME` to the `BUILTIN_THEMES` array in `src/themes/mod.rs`
+4. Add PascalCase alias in `src/lib.rs` aliases module
+5. Tests auto-validate (every theme in BUILTIN_THEMES is checked)
