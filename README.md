@@ -7,6 +7,8 @@
 
 **Semantic theme system for [ratatui](https://ratatui.rs).**
 
+![Showcase](assets/showcase.gif)
+
 Stop hardcoding `Color::Rgb(...)` everywhere. Define what colors **mean** and let themes provide the actual values.
 
 ## The Problem
@@ -40,8 +42,6 @@ let status = t.status_line().kv("Mode", "Normal").kv("Ln", "42").build();
 let ts = t.table_styles(); // header, row, highlight, stripe
 let ls = t.list_styles();  // base, highlight, symbol
 ```
-
-![Showcase](assets/showcase.gif)
 
 ## Quick Start
 
