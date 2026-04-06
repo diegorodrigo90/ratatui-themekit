@@ -6,7 +6,7 @@
 //! Controls: ↑/↓ to switch themes, q/Esc to quit.
 
 use ratatui::Frame;
-use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind, MouseEventKind};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::Color;
 use ratatui::text::{Line, Text};
@@ -20,6 +20,8 @@ struct AnimState {
     progress: u8,
     progress_dir: bool,
     active_tab: usize,
+    list_selected: usize,
+    list_len: usize,
 }
 
 impl AnimState {
@@ -30,6 +32,8 @@ impl AnimState {
             progress: 0,
             progress_dir: true,
             active_tab: 0,
+            list_selected: 0,
+            list_len: 8,
         }
     }
 
@@ -54,6 +58,11 @@ impl AnimState {
         // Tabs: cycle every 40 ticks (~2s)
         if self.tick % 40 == 0 {
             self.active_tab = (self.active_tab + 1) % 4;
+        }
+
+        // List: auto-scroll only when not interactive (GIF recording via VHS)
+        if !std::io::IsTerminal::is_terminal(&std::io::stdin()) && self.tick % 20 == 0 {
+            self.list_selected = (self.list_selected + 1) % self.list_len;
         }
     }
 
@@ -80,6 +89,11 @@ fn main() {
 
     let mut state = AnimState::new(initial_index);
     let mut terminal = ratatui::init();
+    ratatui::crossterm::execute!(
+        std::io::stdout(),
+        ratatui::crossterm::event::EnableMouseCapture
+    )
+    .ok();
 
     loop {
         terminal
@@ -89,11 +103,8 @@ fn main() {
         state.tick();
 
         if event::poll(std::time::Duration::from_millis(50)).unwrap_or(false) {
-            if let Ok(Event::Key(key)) = event::read() {
-                if key.kind != KeyEventKind::Press {
-                    continue;
-                }
-                match key.code {
+            match event::read() {
+                Ok(Event::Key(key)) if key.kind == KeyEventKind::Press => match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => break,
                     KeyCode::Up | KeyCode::Char('k') => {
                         state.theme_index = if state.theme_index == 0 {
@@ -106,11 +117,27 @@ fn main() {
                         state.theme_index = (state.theme_index + 1) % BUILTIN_THEMES.len();
                     }
                     _ => {}
-                }
+                },
+                Ok(Event::Mouse(mouse)) => match mouse.kind {
+                    MouseEventKind::ScrollUp => {
+                        state.list_selected = state.list_selected.saturating_sub(1);
+                    }
+                    MouseEventKind::ScrollDown => {
+                        state.list_selected =
+                            (state.list_selected + 1).min(state.list_len.saturating_sub(1));
+                    }
+                    _ => {}
+                },
+                _ => {}
             }
         }
     }
 
+    ratatui::crossterm::execute!(
+        std::io::stdout(),
+        ratatui::crossterm::event::DisableMouseCapture
+    )
+    .ok();
     ratatui::restore();
 }
 
@@ -485,7 +512,7 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
     ];
 
     let total = items.len();
-    let scroll_pos = (state.tick / 15) as usize % total;
+    let scroll_pos = state.list_selected.min(total.saturating_sub(1));
 
     let inner = block.inner(area);
     frame.render_widget(block, area);
