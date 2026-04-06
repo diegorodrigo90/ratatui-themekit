@@ -1,5 +1,14 @@
 # Changelog
 
+
+### CI
+
+- Automated release pipeline — release-plz creates tag, publish.yml publishes
+
+### Fixed
+
+- Clippy pedantic in showcase (truncation, clone, range) + release-plz git credentials
+- Remove unused Style import in test (CI -Dwarnings)
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
