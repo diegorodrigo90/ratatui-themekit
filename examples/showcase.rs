@@ -200,8 +200,7 @@ fn main() {
                                 let mut x_offset = state.tab_area.x;
                                 for (i, name) in tab_names.iter().enumerate() {
                                     let is_last = i == tab_names.len() - 1;
-                                    let tab_width =
-                                        name.len() as u16 + if is_last { 0 } else { 3 };
+                                    let tab_width = name.len() as u16 + if is_last { 0 } else { 3 };
                                     if pos.x >= x_offset && pos.x < x_offset + tab_width {
                                         state.active_tab = i;
                                         break;
@@ -798,8 +797,7 @@ fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
-    let tab_rows =
-        Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).split(inner);
+    let tab_rows = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).split(inner);
 
     // Tab header — store area for mouse click hit-testing
     state.tab_area = tab_rows[0];
@@ -814,12 +812,18 @@ fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
     // Tab content — changes per active tab
     let content: Vec<Line<'_>> = match state.active_tab {
         0 => vec![
-            t.line().success("  ● ").text("All systems operational").build(),
+            t.line()
+                .success("  ● ")
+                .text("All systems operational")
+                .build(),
             t.line().dim("  Uptime: 99.97%").build(),
         ],
         1 => vec![
             t.line().dim("  [14:32] ").text("Build completed").build(),
-            t.line().dim("  [14:33] ").warning("Slow query: 340ms").build(),
+            t.line()
+                .dim("  [14:33] ")
+                .warning("Slow query: 340ms")
+                .build(),
         ],
         2 => vec![
             t.line().accent("  theme: ").text(t.name()).build(),
