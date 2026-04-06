@@ -160,6 +160,7 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
             Constraint::Length(6),
             Constraint::Length(5),
             Constraint::Length(5),
+            Constraint::Length(3),
             Constraint::Min(0),
         ])
         .split(columns[0]);
@@ -168,7 +169,8 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
     render_line_compositor(frame, left[1], t, state);
     render_status_line_demo(frame, left[2], t, state);
     render_block_demo(frame, left[3], t);
-    render_state_styles(frame, left[4], t);
+    render_input_demo(frame, left[4], t, state);
+    render_state_styles(frame, left[5], t);
 
     let right = Layout::default()
         .direction(Direction::Vertical)
@@ -349,6 +351,27 @@ fn render_block_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(p2, chunks[1]);
 }
 
+fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
+    let is = t.input_styles();
+    let typing = state.progress > 30;
+
+    let border = if typing { is.border_focused } else { is.border };
+    let block = ratatui::widgets::Block::new()
+        .borders(ratatui::widgets::Borders::ALL)
+        .border_type(ratatui::widgets::BorderType::Rounded)
+        .border_style(border)
+        .title(" Input ")
+        .title_style(is.prompt);
+
+    let content = if typing {
+        t.line().accent_bold("> ").text("hello world").build()
+    } else {
+        Line::styled("  Type a message...", is.placeholder)
+    };
+
+    frame.render_widget(Paragraph::new(content).block(block), area);
+}
+
 fn render_state_styles(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let block = t.block(" State-Aware Styles ").build();
     let ss = t.state_styles();
@@ -428,7 +451,7 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
 
     let list = List::new(items)
         .highlight_style(ls.highlight)
-        .highlight_symbol(ls.symbol.as_str())
+        .highlight_symbol(ls.symbol)
         .style(ls.base)
         .block(block);
 

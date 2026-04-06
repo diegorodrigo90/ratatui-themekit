@@ -24,8 +24,9 @@ mod themes;
 
 pub use builders::ThemeExt;
 pub use builders::{
-    GaugeStyles, ListStyles, StateStyles, TabStyles, TableStyles, ThemedBar, ThemedBlock,
-    ThemedLine, ThemedSpan, ThemedStatusLine, zebra_rows,
+    GaugeStyles, InputStyles, ListStyles, NotificationStyles, ScrollbarStyles, StateStyles,
+    TabStyles, TableStyles, ThemedBar, ThemedBlock, ThemedLine, ThemedSpan, ThemedStatusLine,
+    zebra_rows,
 };
 pub use theme_trait::Theme;
 pub use themes::CustomTheme;

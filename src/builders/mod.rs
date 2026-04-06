@@ -51,7 +51,10 @@ pub use block::ThemedBlock;
 pub use line::ThemedLine;
 pub use span::ThemedSpan;
 pub use status_line::ThemedStatusLine;
-pub use styles::{GaugeStyles, ListStyles, StateStyles, TabStyles, TableStyles, zebra_rows};
+pub use styles::{
+    GaugeStyles, InputStyles, ListStyles, NotificationStyles, ScrollbarStyles, StateStyles,
+    TabStyles, TableStyles, zebra_rows,
+};
 
 /// Extension trait — adds chainable builder methods to any `Theme`.
 ///
@@ -165,6 +168,21 @@ pub trait ThemeExt: Theme {
     /// Style bundle for `Gauge` (filled, base).
     fn gauge_styles(&self) -> GaugeStyles {
         GaugeStyles::from_theme(self)
+    }
+
+    /// Style bundle for input fields (text, placeholder, cursor, prompt, border).
+    fn input_styles(&self) -> InputStyles {
+        InputStyles::from_theme(self)
+    }
+
+    /// Style bundle for scrollbar widgets (track, thumb).
+    fn scrollbar_styles(&self) -> ScrollbarStyles {
+        ScrollbarStyles::from_theme(self)
+    }
+
+    /// Style bundle for notifications/toasts by severity.
+    fn notification_styles(&self) -> NotificationStyles {
+        NotificationStyles::from_theme(self)
     }
 
     /// State-aware style resolver (normal, focused, selected, disabled).
@@ -402,6 +420,24 @@ mod tests {
         let ss = CatppuccinMocha.state_styles();
         assert_eq!(ss.normal.fg, Some(CatppuccinMocha.text));
         assert_eq!(ss.focused.fg, Some(CatppuccinMocha.accent));
+    }
+
+    #[test]
+    fn input_styles_via_theme_ext() {
+        let is = CatppuccinMocha.input_styles();
+        assert_eq!(is.cursor.fg, Some(CatppuccinMocha.accent));
+    }
+
+    #[test]
+    fn scrollbar_styles_via_theme_ext() {
+        let ss = CatppuccinMocha.scrollbar_styles();
+        assert_eq!(ss.track.fg, Some(CatppuccinMocha.border));
+    }
+
+    #[test]
+    fn notification_styles_via_theme_ext() {
+        let ns = CatppuccinMocha.notification_styles();
+        assert_eq!(ns.error.fg, Some(CatppuccinMocha.error));
     }
 
     // ── Edge cases ──────────────────────────────────────────────

@@ -33,14 +33,14 @@ pub struct TableStyles {
 /// let ls = CatppuccinMocha.list_styles();
 /// // Use ls.base, ls.highlight, ls.symbol with List::new(...)
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ListStyles {
     /// Base list style.
     pub base: Style,
     /// Selected item highlight style.
     pub highlight: Style,
     /// Highlight symbol (e.g. `"▶ "`).
-    pub symbol: String,
+    pub symbol: &'static str,
 }
 
 /// Style bundle for `ratatui::widgets::Tabs`.
@@ -99,6 +99,71 @@ pub struct StateStyles {
     pub disabled: Style,
 }
 
+/// Style bundle for text input fields (search bars, chat input, command palettes).
+///
+/// ```rust
+/// use ratatui_themekit::{CatppuccinMocha, ThemeExt};
+///
+/// let is = CatppuccinMocha.input_styles();
+/// // Use is.text, is.placeholder, is.cursor, is.prompt,
+/// //     is.border, is.border_focused with your input widget
+/// ```
+#[derive(Debug, Clone, Copy)]
+pub struct InputStyles {
+    /// Typed text style.
+    pub text: Style,
+    /// Placeholder/hint text style (dimmed).
+    pub placeholder: Style,
+    /// Cursor style (accent, reversed for block cursor).
+    pub cursor: Style,
+    /// Prompt prefix style (e.g., `> ` or `/ `).
+    pub prompt: Style,
+    /// Border when unfocused.
+    pub border: Style,
+    /// Border when focused (accent color).
+    pub border_focused: Style,
+}
+
+/// Style bundle for scrollbar widgets.
+///
+/// ```rust
+/// use ratatui_themekit::{CatppuccinMocha, ThemeExt};
+///
+/// let ss = CatppuccinMocha.scrollbar_styles();
+/// // Use ss.track, ss.thumb with Scrollbar widget
+/// ```
+#[derive(Debug, Clone, Copy)]
+pub struct ScrollbarStyles {
+    /// Scrollbar track (background rail).
+    pub track: Style,
+    /// Scrollbar thumb (draggable indicator).
+    pub thumb: Style,
+}
+
+/// Style bundle for notifications/toasts by severity.
+///
+/// ```rust
+/// use ratatui_themekit::{CatppuccinMocha, ThemeExt};
+///
+/// let ns = CatppuccinMocha.notification_styles();
+/// // Use ns.info, ns.success, ns.warning, ns.error for toast borders/text
+/// ```
+#[derive(Debug, Clone, Copy)]
+pub struct NotificationStyles {
+    /// Informational notification border/accent.
+    pub info: Style,
+    /// Success notification border/accent.
+    pub success: Style,
+    /// Warning notification border/accent.
+    pub warning: Style,
+    /// Error notification border/accent.
+    pub error: Style,
+    /// Notification body text.
+    pub body: Style,
+    /// Notification background.
+    pub background: Style,
+}
+
 // ── Factory functions ───────────────────────────────────────────
 
 impl TableStyles {
@@ -127,7 +192,7 @@ impl ListStyles {
                 .fg(theme.accent())
                 .bg(theme.surface())
                 .add_modifier(Modifier::BOLD),
-            symbol: "\u{25b6} ".to_owned(),
+            symbol: "\u{25b6} ",
         }
     }
 }
@@ -152,6 +217,48 @@ impl GaugeStyles {
                 .fg(theme.accent())
                 .add_modifier(Modifier::BOLD),
             base: Style::default().fg(theme.border()),
+        }
+    }
+}
+
+impl ScrollbarStyles {
+    /// Create scrollbar styles from a theme.
+    pub(crate) fn from_theme(theme: &(impl crate::Theme + ?Sized)) -> Self {
+        Self {
+            track: Style::default().fg(theme.border()),
+            thumb: Style::default().fg(theme.text_dim()),
+        }
+    }
+}
+
+impl NotificationStyles {
+    /// Create notification styles from a theme.
+    pub(crate) fn from_theme(theme: &(impl crate::Theme + ?Sized)) -> Self {
+        Self {
+            info: Style::default().fg(theme.info()),
+            success: Style::default().fg(theme.success()),
+            warning: Style::default().fg(theme.warning()),
+            error: Style::default().fg(theme.error()),
+            body: Style::default().fg(theme.text_bright()),
+            background: Style::default().bg(theme.surface()),
+        }
+    }
+}
+
+impl InputStyles {
+    /// Create input styles from a theme.
+    pub(crate) fn from_theme(theme: &(impl crate::Theme + ?Sized)) -> Self {
+        Self {
+            text: Style::default().fg(theme.text()),
+            placeholder: Style::default().fg(theme.text_dim()),
+            cursor: Style::default()
+                .fg(theme.accent())
+                .add_modifier(Modifier::REVERSED),
+            prompt: Style::default()
+                .fg(theme.accent())
+                .add_modifier(Modifier::BOLD),
+            border: Style::default().fg(theme.border()),
+            border_focused: Style::default().fg(theme.accent()),
         }
     }
 }
@@ -313,6 +420,67 @@ mod tests {
         assert_eq!(style, ss.normal);
     }
 
+    // ── InputStyles ──────────────────────────────────────────────
+
+    #[test]
+    fn input_placeholder_is_dim() {
+        let is = InputStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(is.placeholder.fg, Some(CatppuccinMocha.text_dim));
+    }
+
+    #[test]
+    fn input_cursor_is_accent_reversed() {
+        let is = InputStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(is.cursor.fg, Some(CatppuccinMocha.accent));
+        assert!(is.cursor.add_modifier.contains(Modifier::REVERSED));
+    }
+
+    #[test]
+    fn input_border_focused_is_accent() {
+        let is = InputStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(is.border_focused.fg, Some(CatppuccinMocha.accent));
+    }
+
+    // ── ScrollbarStyles ─────────────────────────────────────────
+
+    #[test]
+    fn scrollbar_thumb_is_dim() {
+        let ss = ScrollbarStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(ss.thumb.fg, Some(CatppuccinMocha.text_dim));
+    }
+
+    #[test]
+    fn scrollbar_track_is_border() {
+        let ss = ScrollbarStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(ss.track.fg, Some(CatppuccinMocha.border));
+    }
+
+    // ── NotificationStyles ──────────────────────────────────────
+
+    #[test]
+    fn notification_error_uses_error_color() {
+        let ns = NotificationStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(ns.error.fg, Some(CatppuccinMocha.error));
+    }
+
+    #[test]
+    fn notification_info_uses_info_color() {
+        let ns = NotificationStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(ns.info.fg, Some(CatppuccinMocha.info));
+    }
+
+    #[test]
+    fn notification_success_uses_success_color() {
+        let ns = NotificationStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(ns.success.fg, Some(CatppuccinMocha.success));
+    }
+
+    #[test]
+    fn notification_background_uses_surface() {
+        let ns = NotificationStyles::from_theme(&CatppuccinMocha);
+        assert_eq!(ns.background.bg, Some(CatppuccinMocha.surface));
+    }
+
     // ── NoColor ─────────────────────────────────────────────────
 
     #[test]
@@ -325,6 +493,26 @@ mod tests {
     fn no_color_state_uses_reset() {
         let ss = StateStyles::from_theme(&NoColor);
         assert_eq!(ss.normal.fg, Some(Color::Reset));
+    }
+
+    #[test]
+    fn no_color_input_uses_reset() {
+        let is = InputStyles::from_theme(&NoColor);
+        assert_eq!(is.text.fg, Some(Color::Reset));
+        assert_eq!(is.placeholder.fg, Some(Color::Reset));
+    }
+
+    #[test]
+    fn no_color_scrollbar_uses_reset() {
+        let ss = ScrollbarStyles::from_theme(&NoColor);
+        assert_eq!(ss.track.fg, Some(Color::Reset));
+    }
+
+    #[test]
+    fn no_color_notification_uses_reset() {
+        let ns = NotificationStyles::from_theme(&NoColor);
+        assert_eq!(ns.info.fg, Some(Color::Reset));
+        assert_eq!(ns.error.fg, Some(Color::Reset));
     }
 
     // ── Zebra rows ──────────────────────────────────────────────

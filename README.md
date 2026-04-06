@@ -128,6 +128,15 @@ let tabs = t.tab_styles();
 
 // Gauge — filled, base
 let gs = t.gauge_styles();
+
+// Input — text, placeholder, cursor, prompt, border, border_focused
+let is = t.input_styles();
+
+// Scrollbar — track, thumb
+let sb = t.scrollbar_styles();
+
+// Notifications — info, success, warning, error, body, background
+let ns = t.notification_styles();
 ```
 
 ### State-Aware Styles
