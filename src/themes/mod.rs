@@ -1,20 +1,65 @@
-//! Theme data structure and built-in theme catalog.
+//! Built-in themes and theme data structure.
+//!
+//! Each theme lives in its own file and exports a single `ThemeData` const.
+//! The `BUILTIN_THEMES` registry collects all of them in display order.
+//! Adding a new theme: create a file, define the const, add to registry.
 
-mod catalog;
+mod catppuccin_mocha;
 mod custom;
+mod dracula;
+mod gruvbox_dark;
+mod no_color;
+mod nord;
+mod one_dark;
+mod rose_pine;
+mod solarized_dark;
+mod tailwind_dark;
+mod terminal_native;
+mod tokyo_night;
 
 use ratatui::style::Color;
 
 use crate::Theme;
 
-// Re-export everything from submodules
-pub use catalog::*;
+// Re-export all theme constants
+pub use catppuccin_mocha::CATPPUCCIN_MOCHA;
+pub use dracula::DRACULA;
+pub use gruvbox_dark::GRUVBOX_DARK;
+pub use no_color::NO_COLOR;
+pub use nord::NORD;
+pub use one_dark::ONE_DARK;
+pub use rose_pine::ROSE_PINE;
+pub use solarized_dark::SOLARIZED_DARK;
+pub use tailwind_dark::TAILWIND_DARK;
+pub use terminal_native::TERMINAL_NATIVE;
+pub use tokyo_night::TOKYO_NIGHT;
+
+// Re-export custom theme (serde runtime themes)
 pub use custom::CustomTheme;
+
+/// All built-in themes in display order (`NoColor` excluded — it's special).
+///
+/// This is the single source of truth. `resolve_theme`, `builtin_themes`,
+/// and `available_theme_ids` all derive from this registry.
+pub static BUILTIN_THEMES: &[ThemeData] = &[
+    CATPPUCCIN_MOCHA,
+    DRACULA,
+    NORD,
+    GRUVBOX_DARK,
+    ONE_DARK,
+    SOLARIZED_DARK,
+    TAILWIND_DARK,
+    TOKYO_NIGHT,
+    ROSE_PINE,
+    TERMINAL_NATIVE,
+];
+
+// ── ThemeData ──────────────────────────────────────────────────
 
 /// A theme defined as pure data — 15 color slots.
 ///
 /// Implements `Theme` automatically. Built-in themes are `const` values
-/// of this type. See [`catalog`] for all available themes.
+/// of this type in individual files. User themes use [`CustomTheme`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ThemeData {
     /// Human-readable display name.
