@@ -163,3 +163,80 @@ fn default_cyan() -> Color {
 fn default_black() -> Color {
     Color::Black
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn custom_theme_all_slots_accessible() {
+        let t = CustomTheme {
+            name: "Test".to_owned(),
+            id: "test".to_owned(),
+            accent: Color::Magenta,
+            accent_dim: Color::DarkGray,
+            text: Color::White,
+            text_dim: Color::Gray,
+            text_bright: Color::White,
+            success: Color::Green,
+            error: Color::Red,
+            warning: Color::Yellow,
+            info: Color::Cyan,
+            diff_added: Color::Green,
+            diff_removed: Color::Red,
+            diff_context: Color::DarkGray,
+            border: Color::DarkGray,
+            surface: Color::Black,
+        };
+        let theme: &dyn Theme = &t;
+        assert_eq!(theme.accent(), Color::Magenta);
+        assert_eq!(theme.success(), Color::Green);
+        assert_eq!(theme.block_pass(), theme.success());
+        assert_eq!(theme.indicator_failed(), theme.error());
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn custom_theme_deserialize_minimal() {
+        let toml_str = r#"
+name = "Minimal"
+id = "minimal"
+accent = "Magenta"
+"#;
+        let theme: CustomTheme = toml::from_str(toml_str).unwrap();
+        assert_eq!(theme.name, "Minimal");
+        assert_eq!(theme.id, "minimal");
+        assert_eq!(theme.accent, Color::Magenta);
+        // Defaults applied
+        assert_eq!(theme.success, Color::Green);
+        assert_eq!(theme.error, Color::Red);
+        assert_eq!(theme.text, Color::White);
+        assert_eq!(theme.border, Color::DarkGray);
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn custom_theme_deserialize_rgb() {
+        let toml_str = r#"
+name = "RGB Theme"
+id = "rgb"
+accent = { Rgb = [249, 115, 22] }
+text = { Rgb = [220, 220, 220] }
+"#;
+        let theme: CustomTheme = toml::from_str(toml_str).unwrap();
+        assert_eq!(theme.accent, Color::Rgb(249, 115, 22));
+        assert_eq!(theme.text, Color::Rgb(220, 220, 220));
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn custom_theme_deserialize_indexed() {
+        let toml_str = r#"
+name = "Indexed"
+id = "indexed"
+accent = { Indexed = 208 }
+"#;
+        let theme: CustomTheme = toml::from_str(toml_str).unwrap();
+        assert_eq!(theme.accent, Color::Indexed(208));
+    }
+}

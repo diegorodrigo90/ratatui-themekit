@@ -511,4 +511,52 @@ mod tests {
         let span = t.fg_accent(text).build();
         assert!(span.content.contains("42"));
     }
+
+    // ── Edge cases ──────────────────────────────────────────────
+
+    #[test]
+    fn empty_string_produces_empty_span() {
+        let t = CatppuccinMocha;
+        let span = t.fg_accent("").build();
+        assert!(span.content.is_empty());
+        assert_eq!(span.style.fg, Some(t.accent()));
+    }
+
+    #[test]
+    fn bar_zero_width_does_not_panic() {
+        let t = CatppuccinMocha;
+        let line = t.bar(50).width(0).build();
+        assert!(!line.spans.is_empty());
+    }
+
+    #[test]
+    fn separator_zero_width_does_not_panic() {
+        let t = CatppuccinMocha;
+        let line = t.separator_line(0);
+        assert!(line.spans.len() <= 1);
+    }
+
+    #[test]
+    fn with_color_reset_produces_reset() {
+        let span = ThemedSpan::with_color("text", Color::Reset).build();
+        assert_eq!(span.style.fg, Some(Color::Reset));
+    }
+
+    #[test]
+    fn style_helpers_produce_correct_colors() {
+        let t = CatppuccinMocha;
+        assert_eq!(t.style_accent().fg, Some(t.accent()));
+        assert_eq!(t.style_border().fg, Some(t.border()));
+        assert_eq!(t.style_error().fg, Some(t.error()));
+        assert_eq!(t.style_warning().fg, Some(t.warning()));
+        assert_eq!(t.style_success().fg, Some(t.success()));
+        assert_eq!(t.style_bright().fg, Some(t.text_bright()));
+        assert_eq!(t.style_dim().fg, Some(t.text_dim()));
+    }
+
+    #[test]
+    fn style_fg_with_dynamic_color() {
+        let s = super::style_fg(Color::Rgb(1, 2, 3));
+        assert_eq!(s.fg, Some(Color::Rgb(1, 2, 3)));
+    }
 }

@@ -412,6 +412,37 @@ mod tests {
     }
 
     #[test]
+    fn every_builtin_has_non_empty_name_and_id() {
+        for theme in builtin_themes() {
+            assert!(!theme.name().is_empty(), "theme name must not be empty");
+            assert!(!theme.id().is_empty(), "theme id must not be empty");
+            assert!(
+                !theme.id().contains(' '),
+                "theme id '{}' must not contain spaces",
+                theme.id()
+            );
+        }
+    }
+
+    #[test]
+    fn every_builtin_surface_differs_from_text() {
+        for theme in builtin_themes() {
+            assert_ne!(
+                theme.surface(),
+                theme.text(),
+                "theme '{}' has same surface and text — focus highlight would be invisible",
+                theme.id()
+            );
+        }
+    }
+
+    #[test]
+    fn resolve_empty_string_falls_back() {
+        let theme = resolve_theme("");
+        assert_eq!(theme.id(), "catppuccin");
+    }
+
+    #[test]
     fn custom_theme_implements_trait() {
         let custom = CustomTheme {
             name: "Test".to_owned(),
