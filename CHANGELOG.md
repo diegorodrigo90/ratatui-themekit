@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 
 - Add InputStyles, ScrollbarStyles, NotificationStyles bundles
+# Changelog
+
 
 ## [0.1.0] - 2026-04-05
 
