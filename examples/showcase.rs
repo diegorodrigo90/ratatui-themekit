@@ -291,7 +291,7 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
             Constraint::Length(6),
             Constraint::Length(5),
             Constraint::Length(5),
-            Constraint::Length(3),
+            Constraint::Length(5),
             Constraint::Min(0),
         ])
         .split(columns[0]);
@@ -508,7 +508,7 @@ fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &m
         .style(ratatui::style::Style::default().bg(t.surface()));
 
     let inner = block.inner(area);
-    state.input_area = inner;
+    state.input_area = area; // use outer rect for click hit-testing
     frame.render_widget(block, area);
 
     if state.input_buffer.is_empty() && !focused {
@@ -521,26 +521,35 @@ fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &m
             inner,
         );
     } else {
-        // Render buffer with cursor
+        // Render buffer with cursor — supports multiline via Alt+Enter
         let before = &state.input_buffer[..state.input_cursor];
         let after = &state.input_buffer[state.input_cursor..];
 
         let cursor_char = if focused && state.tick % 20 < 12 {
-            "\u{2588}" // blinking block cursor
+            "\u{2588}"
         } else if focused {
             " "
         } else {
             ""
         };
 
-        let line = t
-            .line()
-            .accent_bold(" > ")
-            .text(before.to_owned())
-            .colored(cursor_char, t.accent())
-            .text(after.to_owned())
-            .build();
-        frame.render_widget(Paragraph::new(line), inner);
+        // Build full text then split by newlines
+        let full = format!(" > {before}{cursor_char}{after}");
+        let lines: Vec<Line<'_>> = full
+            .lines()
+            .enumerate()
+            .map(|(i, line_text)| {
+                if i == 0 {
+                    // First line has the prompt
+                    t.line().text(line_text.to_owned()).build()
+                } else {
+                    t.line().dim("   ").text(line_text.to_owned()).build()
+                }
+            })
+            .collect();
+
+        let text = Text::from(lines);
+        frame.render_widget(Paragraph::new(text), inner);
     }
 }
 
