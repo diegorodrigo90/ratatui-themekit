@@ -7,12 +7,10 @@ use ratatui::style::Color;
 fn blend_bg_surface(bg: Color, surface: Color) -> Color {
     match (bg, surface) {
         (Color::Rgb(br, bg_g, bb), Color::Rgb(sr, sg, sb)) => {
-            // 70% from background toward surface — visible stripe contrast
-            let lerp = |a: u8, b: u8| -> u8 {
-                let a16 = i32::from(a);
-                let b16 = i32::from(b);
-                (a16 + (b16 - a16) * 7 / 10) as u8
-            };
+            // Weighted average: 30% background + 70% surface.
+            // Formula (a*3 + b*7) / 10 avoids signed arithmetic entirely.
+            #[allow(clippy::cast_possible_truncation)]
+            let lerp = |a: u8, b: u8| -> u8 { ((u16::from(a) * 3 + u16::from(b) * 7) / 10) as u8 };
             Color::Rgb(lerp(br, sr), lerp(bg_g, sg), lerp(bb, sb))
         }
         _ => surface,

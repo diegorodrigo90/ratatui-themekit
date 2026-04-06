@@ -101,18 +101,21 @@ impl AnimState {
     /// Simulates typing in GIF mode — types a demo message, pauses, clears, repeats.
     fn auto_type_input(&mut self) {
         const DEMO_TEXT: &str = "Hello themekit!\nMultiline too";
-        let text_len = DEMO_TEXT.len() as u64;
-        let type_interval: u64 = 6; // ticks between chars (~300ms)
-        let pause_ticks: u64 = 80; // pause after full text (~4s)
+        let text_len = DEMO_TEXT.len();
+        let type_interval = 6_usize; // ticks between chars (~300ms)
+        let pause_ticks = 80_usize; // pause after full text (~4s)
         let total_cycle = text_len * type_interval + pause_ticks;
 
-        let cycle_pos = self.tick % total_cycle;
+        // Wrap tick to usize range — safe because total_cycle << usize::MAX
+        let tick =
+            usize::try_from(self.tick % u64::try_from(total_cycle).unwrap_or(1)).unwrap_or(0);
+        let cycle_pos = tick % total_cycle;
         let char_index = cycle_pos / type_interval;
 
         if char_index < text_len {
             // Typing phase
             self.input_focused = true;
-            self.input_buffer = DEMO_TEXT[..char_index as usize + 1].to_owned();
+            DEMO_TEXT[..=char_index].clone_into(&mut self.input_buffer);
             self.input_cursor = self.input_buffer.len();
         } else {
             // Pause phase — show full text, then clear at end
@@ -200,7 +203,8 @@ fn main() {
                                 let mut x_offset = state.tab_area.x;
                                 for (i, name) in tab_names.iter().enumerate() {
                                     let is_last = i == tab_names.len() - 1;
-                                    let tab_width = name.len() as u16 + if is_last { 0 } else { 3 };
+                                    let name_width = u16::try_from(name.len()).unwrap_or(10);
+                                    let tab_width = name_width + if is_last { 0 } else { 3 };
                                     if pos.x >= x_offset && pos.x < x_offset + tab_width {
                                         state.active_tab = i;
                                         break;
