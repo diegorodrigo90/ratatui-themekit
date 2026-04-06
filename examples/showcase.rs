@@ -562,8 +562,34 @@ fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &m
             })
             .collect();
 
+        let total_lines = lines.len();
+        let visible_height = inner.height as usize;
+
+        // Auto-scroll: keep cursor line visible
+        let cursor_line = before.matches('\n').count();
+        let scroll_offset = if total_lines > visible_height {
+            cursor_line.saturating_sub(visible_height.saturating_sub(1))
+        } else {
+            0
+        };
+
         let text = Text::from(lines);
-        frame.render_widget(Paragraph::new(text), inner);
+        #[allow(clippy::cast_possible_truncation)]
+        let paragraph = Paragraph::new(text).scroll((scroll_offset as u16, 0));
+        frame.render_widget(paragraph, inner);
+
+        // Show scrollbar when content overflows
+        if total_lines > visible_height {
+            let sbs = t.scrollbar_styles();
+            let scrollbar = ratatui::widgets::Scrollbar::new(
+                ratatui::widgets::ScrollbarOrientation::VerticalRight,
+            )
+            .track_style(sbs.track)
+            .thumb_style(sbs.thumb);
+            let mut scroll_state =
+                ratatui::widgets::ScrollbarState::new(total_lines).position(scroll_offset);
+            frame.render_stateful_widget(scrollbar, inner, &mut scroll_state);
+        }
     }
 }
 
