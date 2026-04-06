@@ -27,6 +27,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 
 - Add InputStyles, ScrollbarStyles, NotificationStyles bundles
+# Changelog
+
+
+### Added
+
+- Add InputStyles, ScrollbarStyles, NotificationStyles bundles
+- Mouse scroll for list, auto-scroll only in GIF mode
+- Mouse scroll only in list area, store hit-test rect
+- Interactive input in showcase — typing, paste, cursor, Alt+Enter
+- Auto-scroll + scrollbar in input when content overflows
+
+### Documentation
+
+- Update showcase with all features, regenerate assets, enforce rule
+- Add scrollbar to showcase, regenerate all assets
+- Animate list scroll + scrollbar in showcase, regenerate assets
+- Add themekit vs ratatui markers to showcase comments
+
+### Fixed
+
+- Multiline input render + border click hit-test
+
+### Misc
+
+- Release v0.4.1
 
 ## [0.1.0] - 2026-04-05
 
