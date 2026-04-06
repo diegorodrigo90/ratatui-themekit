@@ -1,10 +1,10 @@
 [package]
 name = "ratatui-themekit"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85.0"
 license = "MIT"
-description = "Semantic theme system for ratatui — 20 color slots, 9 built-in themes, ThemeExt builders, NO_COLOR support"
+description = "Semantic theme system for ratatui — 20 color slots, 11 built-in themes, ThemeExt builders, NO_COLOR support"
 repository = "https://github.com/diegorodrigo90/ratatui-themekit"
 homepage = "https://github.com/diegorodrigo90/ratatui-themekit"
 documentation = "https://docs.rs/ratatui-themekit"

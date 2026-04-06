@@ -124,7 +124,7 @@ style_fg(block_color)
 | **Structure** | `border`, `surface` | Panel borders, focused backgrounds |
 | **Derived** | `block_*`, `indicator_*` | Auto-derived from core slots |
 
-## 9 Built-in Themes
+## 11 Built-in Themes
 
 | Theme | ID | Style |
 |-------|----|-------|
@@ -135,8 +135,12 @@ style_fg(block_color)
 | **One Dark** | `one-dark` | Atom's classic blue |
 | **Solarized Dark** | `solarized` | Precision-engineered |
 | **Tailwind Dark** | `tailwind` | Tailwind CSS palette |
+| **Tokyo Night** | `tokyo-night` | Vivid blue accents |
+| **Rosé Pine** | `rose-pine` | Muted, elegant rose tones |
 | **Terminal Native** | `terminal` | Named ANSI colors only |
 | **No Color** | `no-color` | All `Color::Reset` for `NO_COLOR` |
+
+Themes are pure data (`ThemeData` constants) — zero boilerplate, zero code duplication.
 
 ## Custom Themes
 
