@@ -1,0 +1,50 @@
+name: Release Assets
+
+# Runs when release-plz creates/updates a PR, or manually
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-docs:
+    name: Update version in docs
+    if: startsWith(github.head_ref, 'release-plz-') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      PR_BRANCH: ${{ github.head_ref }}
+      TARGET_REF: ${{ github.ref }}
+    steps:
+      - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+          token: ${{ secrets.RELEASE_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Read version from Cargo.toml
+        id: version
+        run: |
+          VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Commit if changes exist
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No doc changes needed for v$NEW_VERSION"
+          else
+            git add -A
+            git commit -m "chore: update docs for v$NEW_VERSION"
+            git push
+          fi
