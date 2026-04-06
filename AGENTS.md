@@ -34,7 +34,11 @@ src/
 ├── builders/
 │   ├── mod.rs          ← ThemeExt trait + style_* helpers
 │   ├── span.rs         ← ThemedSpan builder
-│   └── bar.rs          ← ThemedBar builder
+│   ├── bar.rs          ← ThemedBar builder
+│   ├── block.rs        ← ThemedBlock (themed Block widget)
+│   ├── line.rs         ← ThemedLine (multi-span line compositor)
+│   ├── status_line.rs  ← ThemedStatusLine (key-value status bar)
+│   └── styles.rs       ← TableStyles, ListStyles, TabStyles, GaugeStyles, StateStyles
 └── themes/
     ├── mod.rs           ← ThemeData struct + BUILTIN_THEMES registry
     ├── <theme_name>.rs  ← one file per theme (25 lines each)
@@ -58,6 +62,15 @@ src/
 - **Zero opinion on layout**: only colors, never widget structure
 - **Trait-based extensibility**: any app can implement custom themes
 - **`NO_COLOR` native**: accessibility built in, not bolted on
+
+## Showcase & Screenshots
+
+- `cargo run --example showcase` — interactive TUI demo with all builders
+- `./scripts/generate-screenshots.sh` — generates all PNGs + GIF (requires `vhs`)
+- Screenshots MUST be regenerated after: new themes, new builders, version bump
+- `showcase.rs` reads version and theme count dynamically from crate metadata
+- `assets/` is excluded from crate publish (Cargo.toml `exclude`)
+- GIF goes in README, PNGs in theme gallery docs
 
 ## Code Standards
 

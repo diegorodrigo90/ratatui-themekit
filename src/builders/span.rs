@@ -66,6 +66,27 @@ impl<'a> ThemedSpan<'a> {
         self
     }
 
+    /// Add underline modifier.
+    #[must_use]
+    pub fn underlined(mut self) -> Self {
+        self.modifiers |= Modifier::UNDERLINED;
+        self
+    }
+
+    /// Add strikethrough modifier (crossed out).
+    #[must_use]
+    pub fn crossed_out(mut self) -> Self {
+        self.modifiers |= Modifier::CROSSED_OUT;
+        self
+    }
+
+    /// Add reversed video modifier (swap fg/bg).
+    #[must_use]
+    pub fn reversed(mut self) -> Self {
+        self.modifiers |= Modifier::REVERSED;
+        self
+    }
+
     /// Set background color.
     #[must_use]
     pub fn on(mut self, bg: Color) -> Self {

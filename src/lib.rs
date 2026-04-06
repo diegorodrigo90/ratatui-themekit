@@ -23,6 +23,10 @@ mod themes;
 // ── Core exports ──���────────────────────────────────────────────
 
 pub use builders::ThemeExt;
+pub use builders::{
+    GaugeStyles, ListStyles, StateStyles, TabStyles, TableStyles, ThemedBar, ThemedBlock,
+    ThemedLine, ThemedSpan, ThemedStatusLine, zebra_rows,
+};
 pub use theme_trait::Theme;
 pub use themes::CustomTheme;
 pub use themes::ThemeData;

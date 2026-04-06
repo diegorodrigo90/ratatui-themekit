@@ -1,25 +1,45 @@
 //! Theme-aware builders for ratatui primitives.
 //!
-//! Chainable builders that produce themed `Span`, `Line`, and progress bars.
+//! Chainable builders that produce themed `Span`, `Line`, `Block`,
+//! and widget style bundles — zero boilerplate, semantic colors.
 //!
 //! ```rust
 //! use ratatui_themekit::{CatppuccinMocha, ThemeExt};
 //!
 //! let t = CatppuccinMocha;
 //!
+//! // Span builder
 //! let title = t.fg_accent("Ralph Engine").bold();
-//! let ok = t.fg_success("Passing").bold();
-//! let hint = t.fg_dim("press ? for help");
 //!
-//! let line = ratatui::text::Line::from(vec![
-//!     title.build(),
-//!     t.fg_dim(" | ").build(),
-//!     ok.build(),
-//! ]);
+//! // Line compositor
+//! let line = t.line()
+//!     .accent("Dashboard")
+//!     .dim(" | ")
+//!     .success("3 passed")
+//!     .build();
+//!
+//! // Block builder
+//! let panel = t.block(" Status ").focused(true).build();
+//!
+//! // Status bar
+//! let status = t.status_line()
+//!     .kv("Mode", "Normal")
+//!     .kv("File", "main.rs")
+//!     .build();
+//!
+//! // Widget style bundles
+//! let table = t.table_styles();
+//! let list = t.list_styles();
+//! let tabs = t.tab_styles();
+//! let state = t.state_styles();
 //! ```
 
 mod bar;
+mod block;
+mod line;
 mod span;
+mod status_line;
+mod styles;
 
 use ratatui::style::{Color, Style};
 use ratatui::text::Line;
@@ -27,13 +47,19 @@ use ratatui::text::Line;
 use crate::Theme;
 
 pub use bar::ThemedBar;
+pub use block::ThemedBlock;
+pub use line::ThemedLine;
 pub use span::ThemedSpan;
+pub use status_line::ThemedStatusLine;
+pub use styles::{GaugeStyles, ListStyles, StateStyles, TabStyles, TableStyles, zebra_rows};
 
 /// Extension trait — adds chainable builder methods to any `Theme`.
 ///
-/// Import `ThemeExt` to get `fg_accent()`, `fg_success()`, `fg_dim()`,
-/// `bar()`, `separator_line()` on any `&dyn Theme` or concrete theme.
+/// Import `ThemeExt` to get span builders, line compositors, block
+/// builders, status lines, and widget style bundles on any theme.
 pub trait ThemeExt: Theme {
+    // ── Span builders ───────────────────────────────────────────
+
     /// Span with accent color.
     fn fg_accent<'a>(&self, text: impl Into<std::borrow::Cow<'a, str>>) -> ThemedSpan<'a> {
         ThemedSpan::new(text, self.accent())
@@ -79,6 +105,8 @@ pub trait ThemeExt: Theme {
         ThemedSpan::new(text, self.border())
     }
 
+    // ── Composite builders ──────────────────────────────────────
+
     /// Themed progress bar builder.
     fn bar(&self, percent: u8) -> ThemedBar {
         ThemedBar::new(percent, self.accent(), self.border())
@@ -95,6 +123,53 @@ pub trait ThemeExt: Theme {
     /// Badge-style span: text with colored background.
     fn badge<'a>(&self, text: impl Into<std::borrow::Cow<'a, str>>, bg: Color) -> ThemedSpan<'a> {
         ThemedSpan::new(text, self.surface()).on(bg).bold()
+    }
+
+    /// Themed block builder with title.
+    fn block<'a>(&self, title: &'a str) -> ThemedBlock<'a> {
+        ThemedBlock::new(self, Some(title))
+    }
+
+    /// Themed block builder without title.
+    fn block_plain(&self) -> ThemedBlock<'static> {
+        ThemedBlock::new(self, None)
+    }
+
+    /// Themed line compositor.
+    fn line(&self) -> ThemedLine<'static> {
+        ThemedLine::new(self)
+    }
+
+    /// Themed status line (key-value pairs).
+    fn status_line(&self) -> ThemedStatusLine<'static> {
+        ThemedStatusLine::new(self)
+    }
+
+    // ── Widget style bundles ────────────────────────────────────
+
+    /// Style bundle for `Table` (header, row, highlight, stripe).
+    fn table_styles(&self) -> TableStyles {
+        TableStyles::from_theme(self)
+    }
+
+    /// Style bundle for `List` (base, highlight, symbol).
+    fn list_styles(&self) -> ListStyles {
+        ListStyles::from_theme(self)
+    }
+
+    /// Style bundle for `Tabs` (active, inactive).
+    fn tab_styles(&self) -> TabStyles {
+        TabStyles::from_theme(self)
+    }
+
+    /// Style bundle for `Gauge` (filled, base).
+    fn gauge_styles(&self) -> GaugeStyles {
+        GaugeStyles::from_theme(self)
+    }
+
+    /// State-aware style resolver (normal, focused, selected, disabled).
+    fn state_styles(&self) -> StateStyles {
+        StateStyles::from_theme(self)
     }
 
     // ── Style helpers (for widget APIs that take Style) ──────
@@ -126,6 +201,14 @@ pub trait ThemeExt: Theme {
     /// Style with dim text foreground.
     fn style_dim(&self) -> Style {
         Style::default().fg(self.text_dim())
+    }
+    /// Style with info foreground.
+    fn style_info(&self) -> Style {
+        Style::default().fg(self.info())
+    }
+    /// Style with surface background.
+    fn style_surface(&self) -> Style {
+        Style::default().bg(self.surface())
     }
 }
 
@@ -228,6 +311,13 @@ mod tests {
     }
 
     #[test]
+    fn style_info_and_surface() {
+        let t = CatppuccinMocha;
+        assert_eq!(t.style_info().fg, Some(t.info));
+        assert_eq!(t.style_surface().bg, Some(t.surface));
+    }
+
+    #[test]
     fn style_fg_with_dynamic_color() {
         let s = style_fg(Color::Rgb(1, 2, 3));
         assert_eq!(s.fg, Some(Color::Rgb(1, 2, 3)));
@@ -246,6 +336,72 @@ mod tests {
     fn no_color_builders_produce_reset() {
         let span = NoColor.fg_accent("text").build();
         assert_eq!(span.style.fg, Some(Color::Reset));
+    }
+
+    // ── Composite builders via ThemeExt ─────────────────────────
+
+    #[test]
+    fn block_builder_via_theme_ext() {
+        let block = CatppuccinMocha.block(" Test ").build();
+        let _ = block;
+    }
+
+    #[test]
+    fn block_plain_via_theme_ext() {
+        let block = CatppuccinMocha.block_plain().build();
+        let _ = block;
+    }
+
+    #[test]
+    fn line_builder_via_theme_ext() {
+        let line = CatppuccinMocha
+            .line()
+            .accent("A")
+            .dim(" | ")
+            .success("B")
+            .build();
+        assert_eq!(line.spans.len(), 3);
+    }
+
+    #[test]
+    fn status_line_via_theme_ext() {
+        let line = CatppuccinMocha
+            .status_line()
+            .kv("Mode", "Normal")
+            .kv("File", "main.rs")
+            .build();
+        assert_eq!(line.spans.len(), 7); // pair(3) + sep(1) + pair(3)
+    }
+
+    #[test]
+    fn table_styles_via_theme_ext() {
+        let ts = CatppuccinMocha.table_styles();
+        assert_eq!(ts.header.fg, Some(CatppuccinMocha.accent));
+    }
+
+    #[test]
+    fn list_styles_via_theme_ext() {
+        let ls = CatppuccinMocha.list_styles();
+        assert_eq!(ls.highlight.fg, Some(CatppuccinMocha.accent));
+    }
+
+    #[test]
+    fn tab_styles_via_theme_ext() {
+        let ts = CatppuccinMocha.tab_styles();
+        assert_eq!(ts.active.fg, Some(CatppuccinMocha.accent));
+    }
+
+    #[test]
+    fn gauge_styles_via_theme_ext() {
+        let gs = CatppuccinMocha.gauge_styles();
+        assert_eq!(gs.filled.fg, Some(CatppuccinMocha.accent));
+    }
+
+    #[test]
+    fn state_styles_via_theme_ext() {
+        let ss = CatppuccinMocha.state_styles();
+        assert_eq!(ss.normal.fg, Some(CatppuccinMocha.text));
+        assert_eq!(ss.focused.fg, Some(CatppuccinMocha.accent));
     }
 
     // ── Edge cases ──────────────────────────────────────────────

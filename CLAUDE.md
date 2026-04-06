@@ -26,7 +26,11 @@ src/
 ├── builders/
 │   ├── mod.rs          ← ThemeExt trait + style helpers
 │   ├── span.rs         ← ThemedSpan (chainable span builder)
-│   └── bar.rs          ← ThemedBar (progress bar builder)
+│   ├── bar.rs          ← ThemedBar (progress bar builder)
+│   ├── block.rs        ← ThemedBlock (themed Block widget builder)
+│   ├── line.rs         ← ThemedLine (multi-span line compositor)
+│   ├── status_line.rs  ← ThemedStatusLine (key-value status bar)
+│   └── styles.rs       ← TableStyles, ListStyles, TabStyles, GaugeStyles, StateStyles, zebra_rows
 └── themes/
     ├── mod.rs           ← ThemeData struct + BUILTIN_THEMES registry
     ├── catppuccin_mocha.rs  ← 1 theme = 1 file = 25 lines
@@ -39,12 +43,13 @@ src/
 
 - ALL colors through Theme trait — zero hardcoded `Color::*`
 - Theme trait: 15 required + 10 derived methods
+- ThemeExt: span, line, block, status_line, table/list/tab/gauge/state style bundles
 - `Send + Sync` required on implementations
 - `NO_COLOR` always respected
 - Every public item has doc comments
 - Clippy pedantic — zero warnings
 - Conventional commits
-- Files max 300 lines, single responsibility
+- Files max 450 lines, single responsibility
 - `interactive: true` in lefthook for cargo commands (prevents jobserver deadlock)
 
 ## Adding a New Theme

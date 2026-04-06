@@ -24,11 +24,24 @@ use ratatui_themekit::{Theme, ThemeExt, CatppuccinMocha};
 
 let t = CatppuccinMocha;
 
-// Chainable builders — semantic, themed
-let title = t.fg_accent("Ralph Engine").bold().build();
-let ok    = t.fg_success("Passing").bold().build();
-let hint  = t.fg_dim("press ? for help").build();
+// Span builders
+let title = t.fg_accent("Dashboard").bold().build();
+
+// Line compositor — no more vec![] + .build() on every span
+let line = t.line().accent_bold("App").dim(" | ").success("Ready").build();
+
+// Block builder — themed borders, title, focus state
+let panel = t.block(" Status ").focused(true).build();
+
+// Status bar — key-value pairs
+let status = t.status_line().kv("Mode", "Normal").kv("Ln", "42").build();
+
+// Widget style bundles — Table, List, Tabs, Gauge, State
+let ts = t.table_styles(); // header, row, highlight, stripe
+let ls = t.list_styles();  // base, highlight, symbol
 ```
+
+![Showcase](assets/showcase.gif)
 
 ## Quick Start
 
@@ -55,62 +68,90 @@ let border = t.style_border();
 let title = t.style_accent();
 ```
 
-## ThemeExt Builders
+## Builders
 
-Import `ThemeExt` to get chainable builders on any `Theme`:
+Import `ThemeExt` to get all builders on any `Theme`:
+
+### Spans
 
 ```rust
-use ratatui_themekit::{Theme, ThemeExt, CatppuccinMocha};
-
-let t = CatppuccinMocha;
-
-// Semantic span builders — color from theme slot
-t.fg_accent("title")           // accent color
-t.fg_dim("hint")               // dimmed text
-t.fg_bright("emphasis")        // bright text
-t.fg_success("ok").bold()      // success + bold
-t.fg_error("fail").italic()    // error + italic
-t.fg_warning("warn")           // warning
-t.fg_info("note")              // informational
-t.fg_added("+line")            // diff added
-t.fg_removed("-line")          // diff removed
-t.fg_border("---")             // border/separator
-
-// Modifiers chain
-t.fg_accent("title").bold().italic().build()
-
-// Background color
-t.fg_accent("badge").on(Color::Red).build()
-
-// Badge (text on colored background)
-t.badge(" RUNNING ", Color::Green).build()
-
-// Progress bar
-t.bar(75).width(20).build()  // ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▱▱▱▱▱ 75%
-
-// Separator line
-t.separator_line(40)  // · · · · · · · · · · · ·
-
-// Style helpers for widget APIs (border_style, title_style)
-t.style_accent()    // Style with accent fg
-t.style_border()    // Style with border fg
-t.style_error()     // Style with error fg
-t.style_warning()   // Style with warning fg
+t.fg_accent("title").bold().build()     // semantic color + modifiers
+t.fg_success("ok").italic().build()     // success, error, warning, info, dim, bright
+t.fg_added("+line").build()             // diff colors
+t.badge(" RUN ", Color::Green).build()  // text on colored background
 ```
 
-### Dynamic Colors
-
-For colors not from a named theme slot (e.g., computed at runtime):
+### Line Compositor
 
 ```rust
-use ratatui_themekit::builders::{ThemedSpan, style_fg};
+// Compose multi-span lines without vec![] boilerplate
+let line = t.line()
+    .accent_bold("Dashboard")
+    .dim(" | ")
+    .success_bold("3 passed")
+    .dim(", ")
+    .error_bold("1 failed")
+    .build();
+```
 
-// Dynamic color span
-let block_color = theme.block_file_edit();
-ThemedSpan::with_color("text", block_color).bold().build()
+### Block Builder
 
-// Dynamic color style (for widgets)
-style_fg(block_color)
+```rust
+let panel = t.block(" Dashboard ").build();            // themed borders + title
+let active = t.block(" Active ").focused(true).build(); // accent-colored borders
+let bare = t.block_plain().build();                     // no title
+```
+
+### Status Line
+
+```rust
+let status = t.status_line()
+    .kv("Mode", "Normal")
+    .kv("File", "main.rs")
+    .kv_colored("Build", "passing", t.success())
+    .separator(" | ")
+    .build();
+```
+
+### Widget Style Bundles
+
+```rust
+// Table — header, row, highlight, zebra striping
+let ts = t.table_styles();
+let striped = zebra_rows(rows, ts.stripe);
+
+// List — base, highlight, symbol
+let ls = t.list_styles();
+
+// Tabs — active, inactive
+let tabs = t.tab_styles();
+
+// Gauge — filled, base
+let gs = t.gauge_styles();
+```
+
+### State-Aware Styles
+
+```rust
+// Resolve style based on widget state (focused, selected, disabled)
+let ss = t.state_styles();
+let style = ss.resolve(is_focused, is_selected, is_disabled);
+```
+
+### Progress Bar & Separator
+
+```rust
+t.bar(75).width(20).build()   // ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▱▱▱▱▱ 75%
+t.separator_line(40)           // · · · · · · · · · · · ·
+```
+
+### Style Helpers
+
+```rust
+// For widget APIs that take Style (border_style, title_style)
+t.style_accent()   t.style_border()   t.style_error()
+t.style_success()  t.style_warning()  t.style_info()
+t.style_bright()   t.style_dim()      t.style_surface()
 ```
 
 ## 20 Semantic Color Slots
@@ -141,6 +182,8 @@ style_fg(block_color)
 | **No Color** | `no-color` | All `Color::Reset` for `NO_COLOR` |
 
 Themes are pure data (`ThemeData` constants) — zero boilerplate, zero code duplication.
+
+See all themes rendered: **[Theme Gallery](examples/README.md#theme-gallery)**
 
 ## Custom Themes
 
