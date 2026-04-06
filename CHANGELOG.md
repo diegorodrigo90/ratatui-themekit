@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
+# Changelog
+
+
+### Added
+
+- Add background() derived slot, MSRV 1.86.0, CI MSRV check
+
+### CI
+
+- Add harden-runner to all jobs, fix audit-check SHA
+- Fix deny + audit failures, add release checklist
+- Fix audit permissions, ignore upstream time advisory
+- Consolidate jobs with rust-cache, remove release-plz
+- Restore release-plz with correct credentials, add rust-cache
+- Use RELEASE_TOKEN PAT for release-plz push
+- Fix release-plz — pass token to checkout, use latest action
+- Fix release-plz action SHA — use release-plz/action main
+- Add release-assets workflow for doc updates on release PRs
 
 ## [0.1.0] - 2026-04-05
 
