@@ -117,13 +117,30 @@ pub struct ThemedSpan<'a> {
 }
 
 impl<'a> ThemedSpan<'a> {
-    fn new(text: impl Into<std::borrow::Cow<'a, str>>, fg: Color) -> Self {
+    /// Creates a new themed span with the given text and foreground color.
+    ///
+    /// Use this for dynamic colors that aren't covered by `ThemeExt` methods.
+    /// For theme-semantic colors, prefer `t.fg_accent()`, `t.fg_dim()`, etc.
+    ///
+    /// ```rust
+    /// use ratatui::style::Color;
+    /// use ratatui_themekit::builders::ThemedSpan;
+    ///
+    /// let span = ThemedSpan::with_color("text", Color::Rgb(100, 200, 50)).bold().build();
+    /// ```
+    #[must_use]
+    pub fn with_color(text: impl Into<std::borrow::Cow<'a, str>>, fg: Color) -> Self {
         Self {
             text: text.into(),
             fg,
             bg: None,
             modifiers: Modifier::empty(),
         }
+    }
+
+    /// Internal constructor used by ThemeExt methods.
+    pub(crate) fn new(text: impl Into<std::borrow::Cow<'a, str>>, fg: Color) -> Self {
+        Self::with_color(text, fg)
     }
 
     /// Add bold modifier.
@@ -430,6 +447,15 @@ mod tests {
     }
 
     // ── Owned strings work ──────────────────────────────────────
+
+    #[test]
+    fn with_color_creates_span_with_dynamic_color() {
+        let span = ThemedSpan::with_color("dynamic", Color::Rgb(100, 200, 50))
+            .bold()
+            .build();
+        assert_eq!(span.style.fg, Some(Color::Rgb(100, 200, 50)));
+        assert!(span.style.add_modifier.contains(Modifier::BOLD));
+    }
 
     #[test]
     fn owned_string_accepted() {
