@@ -94,7 +94,7 @@ pub use aliases::*;
 // Re-export custom theme (serde-powered user themes)
 pub use custom::CustomTheme;
 
-// Re-export builders (the Tailwind-like utilities)
+// Re-export builders (the chainable builder utilities)
 pub use builders::ThemeExt;
 
 // ── Theme trait ────────────────────────────────────────────────

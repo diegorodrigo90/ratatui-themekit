@@ -6,7 +6,7 @@ Semantic theme system for ratatui TUI applications.
 - Theme trait with 20 semantic color slots (accent, text, success, error, etc.)
 - 11 built-in themes (Catppuccin, Dracula, Nord, Gruvbox, OneDark, Solarized, Tailwind, TokyoNight, RosePine, Terminal, NoColor)
 - ThemeData struct — themes are pure data constants, zero boilerplate
-- ThemeExt builders: Tailwind-like API for themed spans (fg_accent, fg_dim, fg_success, bold, italic, etc.)
+- ThemeExt builders: chainable themed spans (fg_accent, fg_dim, fg_success, bold, italic, etc.)
 - ThemedSpan::with_color for dynamic colors not from named slots
 - style_* helpers for widget APIs (border_style, title_style)
 - style_fg(color) for dynamic Style creation

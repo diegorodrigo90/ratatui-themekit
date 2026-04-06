@@ -27,7 +27,7 @@ use ratatui::text::{Line, Span};
 
 use crate::Theme;
 
-/// Extension trait — adds Tailwind-like builder methods to any `Theme`.
+/// Extension trait — adds chainable builder methods to any `Theme`.
 ///
 /// Import `ThemeExt` to get `fg_accent()`, `fg_success()`, `fg_dim()`,
 /// `bar()`, `separator_line()` on any `&dyn Theme` or concrete theme.

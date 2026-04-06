@@ -24,7 +24,7 @@ use ratatui_themekit::{Theme, ThemeExt, CatppuccinMocha};
 
 let t = CatppuccinMocha;
 
-// Tailwind-like builders — semantic, chainable, themed
+// Chainable builders — semantic, themed
 let title = t.fg_accent("Ralph Engine").bold().build();
 let ok    = t.fg_success("Passing").bold().build();
 let hint  = t.fg_dim("press ? for help").build();
@@ -55,7 +55,7 @@ let border = t.style_border();
 let title = t.style_accent();
 ```
 
-## ThemeExt Builders (Tailwind-like API)
+## ThemeExt Builders
 
 Import `ThemeExt` to get chainable builders on any `Theme`:
 
