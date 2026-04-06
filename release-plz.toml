@@ -1,3 +1,9 @@
 [workspace]
 changelog_config = "cliff.toml"
+# release-plz creates tag + GitHub Release but does NOT publish.
+# Publishing is handled by the tag-triggered publish.yml workflow
+# which runs AFTER release-assets.yml updates images and version strings.
+git_tag_enable = true
 git_release_enable = true
+publish = false
+semver_check = true
