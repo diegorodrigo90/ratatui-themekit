@@ -37,8 +37,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
-  release-plz-release:
-    name: Tag + GitHub Release
+  # Single job: generate assets → commit → tag → GitHub Release.
+  # Runs on every push to main. On non-release pushes, release-plz
+  # detects no unreleased version and does nothing (idempotent).
+  release:
+    name: Assets + Tag + Release
     runs-on: ubuntu-latest
     steps:
       - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
@@ -50,7 +53,46 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
-      - name: Create tag + GitHub Release (no publish)
+
+      # 1. Build showcase binary
+      - name: Build showcase
+        run: cargo build --example showcase --release
+
+      # 2. Install VHS + generate screenshots/GIF
+      - name: Install VHS + dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          go install github.com/charmbracelet/vhs@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Generate screenshots + GIF
+        env:
+          THEMEKIT_GIF: "1"
+        run: |
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          ./scripts/generate-screenshots.sh
+
+      # 3. Commit assets if changed (before tagging)
+      - name: Commit assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No asset changes"
+          else
+            VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+            git add assets/
+            git commit -m "chore: update assets for v$VERSION"
+            git push
+          fi
+
+      # 4. Tag + GitHub Release (no publish — publish.yml handles that)
+      - name: Configure git credentials
+        run: |
+          git config --global credential.helper store
+          echo "https://x-access-token:${{ secrets.RELEASE_TOKEN }}@github.com" > ~/.git-credentials
+      - name: Create tag + GitHub Release
         uses: release-plz/action@5b353e755cfc29e2efff7365a831d69fef0aaea9 # v0.5.99
         with:
           command: release
