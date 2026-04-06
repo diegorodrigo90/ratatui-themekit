@@ -2,7 +2,7 @@
 name = "ratatui-themekit"
 version = "0.4.0"
 edition = "2024"
-rust-version = "1.85.0"
+rust-version = "1.86.0"
 license = "MIT"
 description = "Semantic theme system for ratatui — 11 themes, widget builders (Block, Line, Table, List, Tabs, StatusLine, Gauge), state-aware styles, NO_COLOR"
 repository = "https://github.com/diegorodrigo90/ratatui-themekit"

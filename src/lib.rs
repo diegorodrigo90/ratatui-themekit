@@ -181,4 +181,10 @@ mod tests {
         assert_eq!(theme.accent(), Color::Magenta);
         assert_eq!(theme.block_pass(), theme.success());
     }
+
+    #[test]
+    fn background_defaults_to_reset() {
+        assert_eq!(CatppuccinMocha.background(), Color::Reset);
+        assert_eq!(Dracula.background(), Color::Reset);
+    }
 }

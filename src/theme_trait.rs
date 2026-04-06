@@ -61,6 +61,15 @@ pub trait Theme: Send + Sync {
     fn surface(&self) -> Color;
 
     // ── Derived defaults ─────────────────────────────────────
+
+    /// Application background color.
+    ///
+    /// Defaults to `Color::Reset` (terminal background). Override for
+    /// apps that force a specific background (e.g., fullscreen dashboards).
+    fn background(&self) -> Color {
+        Color::Reset
+    }
+
     /// Color for file-read operations.
     fn block_file_read(&self) -> Color {
         self.text_dim()
