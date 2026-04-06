@@ -24,6 +24,11 @@ struct AnimState {
     list_len: usize,
     /// Stored area of the list widget for mouse hit-testing.
     list_area: Rect,
+    /// Input field state.
+    input_focused: bool,
+    input_buffer: String,
+    input_cursor: usize,
+    input_area: Rect,
 }
 
 impl AnimState {
@@ -37,6 +42,10 @@ impl AnimState {
             list_selected: 0,
             list_len: 8,
             list_area: Rect::default(),
+            input_focused: false,
+            input_buffer: String::new(),
+            input_cursor: 0,
+            input_area: Rect::default(),
         }
     }
 
@@ -94,7 +103,8 @@ fn main() {
     let mut terminal = ratatui::init();
     ratatui::crossterm::execute!(
         std::io::stdout(),
-        ratatui::crossterm::event::EnableMouseCapture
+        ratatui::crossterm::event::EnableMouseCapture,
+        ratatui::crossterm::event::EnableBracketedPaste
     )
     .ok();
 
@@ -107,36 +117,46 @@ fn main() {
 
         if event::poll(std::time::Duration::from_millis(50)).unwrap_or(false) {
             match event::read() {
-                Ok(Event::Key(key)) if key.kind == KeyEventKind::Press => match key.code {
-                    KeyCode::Char('q') | KeyCode::Esc => break,
-                    KeyCode::Up | KeyCode::Char('k') => {
-                        state.theme_index = if state.theme_index == 0 {
-                            BUILTIN_THEMES.len() - 1
-                        } else {
-                            state.theme_index - 1
-                        };
-                    }
-                    KeyCode::Down | KeyCode::Char('j') => {
-                        state.theme_index = (state.theme_index + 1) % BUILTIN_THEMES.len();
-                    }
-                    _ => {}
-                },
-                Ok(Event::Mouse(mouse)) => {
-                    let in_list = state
-                        .list_area
-                        .contains(ratatui::layout::Position::new(mouse.column, mouse.row));
-                    if in_list {
-                        match mouse.kind {
-                            MouseEventKind::ScrollUp => {
-                                state.list_selected = state.list_selected.saturating_sub(1);
+                Ok(Event::Key(key)) if key.kind == KeyEventKind::Press => {
+                    if state.input_focused {
+                        handle_input_key(&mut state, key.code, key.modifiers);
+                    } else {
+                        match key.code {
+                            KeyCode::Char('q') | KeyCode::Esc => break,
+                            KeyCode::Up | KeyCode::Char('k') => {
+                                state.theme_index = if state.theme_index == 0 {
+                                    BUILTIN_THEMES.len() - 1
+                                } else {
+                                    state.theme_index - 1
+                                };
                             }
-                            MouseEventKind::ScrollDown => {
-                                state.list_selected =
-                                    (state.list_selected + 1).min(state.list_len.saturating_sub(1));
+                            KeyCode::Down | KeyCode::Char('j') => {
+                                state.theme_index = (state.theme_index + 1) % BUILTIN_THEMES.len();
                             }
                             _ => {}
                         }
                     }
+                }
+                Ok(Event::Mouse(mouse)) => {
+                    let pos = ratatui::layout::Position::new(mouse.column, mouse.row);
+
+                    match mouse.kind {
+                        MouseEventKind::Down(_) => {
+                            state.input_focused = state.input_area.contains(pos);
+                        }
+                        MouseEventKind::ScrollUp if state.list_area.contains(pos) => {
+                            state.list_selected = state.list_selected.saturating_sub(1);
+                        }
+                        MouseEventKind::ScrollDown if state.list_area.contains(pos) => {
+                            state.list_selected =
+                                (state.list_selected + 1).min(state.list_len.saturating_sub(1));
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(Event::Paste(text)) if state.input_focused => {
+                    state.input_buffer.insert_str(state.input_cursor, &text);
+                    state.input_cursor += text.len();
                 }
                 _ => {}
             }
@@ -145,10 +165,84 @@ fn main() {
 
     ratatui::crossterm::execute!(
         std::io::stdout(),
-        ratatui::crossterm::event::DisableMouseCapture
+        ratatui::crossterm::event::DisableMouseCapture,
+        ratatui::crossterm::event::DisableBracketedPaste
     )
     .ok();
     ratatui::restore();
+}
+
+/// Handle key events when the input field is focused.
+fn handle_input_key(
+    state: &mut AnimState,
+    code: KeyCode,
+    modifiers: ratatui::crossterm::event::KeyModifiers,
+) {
+    use ratatui::crossterm::event::KeyModifiers;
+    match code {
+        KeyCode::Esc => {
+            state.input_focused = false;
+        }
+        KeyCode::Char(c) => {
+            state.input_buffer.insert(state.input_cursor, c);
+            state.input_cursor += c.len_utf8();
+        }
+        KeyCode::Backspace => {
+            if state.input_cursor > 0 {
+                let prev = state.input_buffer[..state.input_cursor]
+                    .char_indices()
+                    .next_back()
+                    .map_or(0, |(i, _)| i);
+                state.input_buffer.drain(prev..state.input_cursor);
+                state.input_cursor = prev;
+            }
+        }
+        KeyCode::Delete => {
+            if state.input_cursor < state.input_buffer.len() {
+                let next = state.input_buffer[state.input_cursor..]
+                    .char_indices()
+                    .nth(1)
+                    .map_or(state.input_buffer.len(), |(i, _)| state.input_cursor + i);
+                state.input_buffer.drain(state.input_cursor..next);
+            }
+        }
+        KeyCode::Left => {
+            if state.input_cursor > 0 {
+                state.input_cursor = state.input_buffer[..state.input_cursor]
+                    .char_indices()
+                    .next_back()
+                    .map_or(0, |(i, _)| i);
+            }
+        }
+        KeyCode::Right => {
+            if state.input_cursor < state.input_buffer.len() {
+                state.input_cursor = state.input_buffer[state.input_cursor..]
+                    .char_indices()
+                    .nth(1)
+                    .map_or(state.input_buffer.len(), |(i, _)| state.input_cursor + i);
+            }
+        }
+        KeyCode::Home => {
+            // Go to start of current line
+            state.input_cursor = state.input_buffer[..state.input_cursor]
+                .rfind('\n')
+                .map_or(0, |i| i + 1);
+        }
+        KeyCode::End => {
+            state.input_cursor = state.input_buffer[state.input_cursor..]
+                .find('\n')
+                .map_or(state.input_buffer.len(), |i| state.input_cursor + i);
+        }
+        KeyCode::Enter => {
+            if modifiers.contains(KeyModifiers::ALT) {
+                // Alt+Enter: insert newline
+                state.input_buffer.insert(state.input_cursor, '\n');
+                state.input_cursor += 1;
+            }
+            // Enter alone: do nothing (no submit in showcase)
+        }
+        _ => {}
+    }
 }
 
 fn render_showcase(frame: &mut Frame<'_>, state: &mut AnimState) {
@@ -392,27 +486,62 @@ fn render_block_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(p2, chunks[1]);
 }
 
-fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
+fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut AnimState) {
     let is = t.input_styles();
-    let typing = state.progress > 30;
+    let focused = state.input_focused;
 
-    let border = if typing { is.border_focused } else { is.border };
-    let bg = ratatui::style::Style::default().bg(t.surface());
+    let border = if focused {
+        is.border_focused
+    } else {
+        is.border
+    };
     let block = ratatui::widgets::Block::new()
         .borders(ratatui::widgets::Borders::ALL)
         .border_type(ratatui::widgets::BorderType::Rounded)
         .border_style(border)
-        .title(" Input ")
+        .title(if focused {
+            " Input (Esc to unfocus) "
+        } else {
+            " Input (click to focus) "
+        })
         .title_style(is.prompt)
-        .style(bg);
+        .style(ratatui::style::Style::default().bg(t.surface()));
 
-    let content = if typing {
-        t.line().accent_bold("> ").text("hello world").build()
+    let inner = block.inner(area);
+    state.input_area = inner;
+    frame.render_widget(block, area);
+
+    if state.input_buffer.is_empty() && !focused {
+        // Placeholder
+        frame.render_widget(
+            Paragraph::new(Line::styled(
+                " Type here... (Alt+Enter = newline)",
+                is.placeholder,
+            )),
+            inner,
+        );
     } else {
-        Line::styled("  Type a message...", is.placeholder)
-    };
+        // Render buffer with cursor
+        let before = &state.input_buffer[..state.input_cursor];
+        let after = &state.input_buffer[state.input_cursor..];
 
-    frame.render_widget(Paragraph::new(content).block(block), area);
+        let cursor_char = if focused && state.tick % 20 < 12 {
+            "\u{2588}" // blinking block cursor
+        } else if focused {
+            " "
+        } else {
+            ""
+        };
+
+        let line = t
+            .line()
+            .accent_bold(" > ")
+            .text(before.to_owned())
+            .colored(cursor_char, t.accent())
+            .text(after.to_owned())
+            .build();
+        frame.render_widget(Paragraph::new(line), inner);
+    }
 }
 
 fn render_state_styles(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
