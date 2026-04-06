@@ -3,7 +3,14 @@
 //! Run: `cargo run --example showcase`
 //! Run with theme: `cargo run --example showcase -- tokyo-night`
 //!
-//! Controls: ↑/↓ to switch themes, q/Esc to quit.
+//! Controls: ↑/↓ switch themes, mouse scroll in list, click input to type, q/Esc quit.
+//!
+//! ## What is themekit vs ratatui?
+//!
+//! Lines marked `// ← themekit` show what the library provides.
+//! Everything else (layout, event loop, state) is standard ratatui.
+//! The value of themekit: zero `Style::default().fg(...)` boilerplate,
+//! semantic colors that change when you switch themes.
 
 use ratatui::Frame;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind, MouseEventKind};
@@ -267,14 +274,14 @@ fn render_header(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let version = env!("CARGO_PKG_VERSION");
     let theme_count = BUILTIN_THEMES.len();
     let title = format!(" ratatui-themekit v{version} \u{2014} {} ", t.name());
-    let block = t.block(&title).build();
+    let block = t.block(&title).build(); // ← themekit: themed block with title
     let subtitle = format!(" \u{2014} {theme_count} themes, widget builders, state-aware styles");
     let text = t
-        .line()
+        .line() // ← themekit: line compositor
         .accent_bold("  Semantic theme system")
         .dim(subtitle)
         .build();
-    let paragraph = Paragraph::new(text).block(block);
+    let paragraph = Paragraph::new(text).block(block); // ratatui: standard Paragraph
     frame.render_widget(paragraph, area);
 }
 
@@ -325,10 +332,12 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
     render_themes_list(frame, right[6], t, state.theme_index);
 }
 
+/// All lines here use themekit: `t.line()`, `t.fg_*()`, `t.badge()`.
+/// Without themekit you'd write `Span::styled("text", Style::default().fg(Color::Rgb(...)))`.
 fn render_spans(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
-    let block = t.block(" Span Builders (ThemeExt) ").build();
+    let block = t.block(" Span Builders (ThemeExt) ").build(); // ← themekit
     let text = Text::from(vec![
-        t.line()
+        t.line() // ← themekit: each line uses semantic color names
             .accent_bold("fg_accent")
             .dim("  \u{2014} primary brand color")
             .build(),
@@ -391,6 +400,7 @@ fn render_spans(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(paragraph, area);
 }
 
+/// `t.line()` composes multi-span lines without `vec![]` boilerplate. ← themekit
 fn render_line_compositor(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
     let block = t.block(" Line Compositor ").build();
 
@@ -429,6 +439,7 @@ fn render_line_compositor(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, stat
     frame.render_widget(paragraph, area);
 }
 
+/// `t.status_line().kv("Key", "Val")` builds key-value status bars. ← themekit
 fn render_status_line_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
     let block = t.block(" Status Line ").build();
 
@@ -471,6 +482,7 @@ fn render_status_line_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, sta
     frame.render_widget(paragraph, area);
 }
 
+/// `t.block("Title").focused(true).build()` — themed Block widget. ← themekit
 fn render_block_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
@@ -486,6 +498,8 @@ fn render_block_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(p2, chunks[1]);
 }
 
+/// `t.input_styles()` — themed input field colors. ← themekit
+/// Input handling (keys, mouse, cursor) is standard ratatui.
 fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut AnimState) {
     let is = t.input_styles();
     let focused = state.input_focused;
@@ -553,6 +567,7 @@ fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &m
     }
 }
 
+/// `t.state_styles()` — normal/focused/selected/disabled. ← themekit
 fn render_state_styles(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let block = t.block(" State-Aware Styles ").build();
     let ss = t.state_styles();
@@ -566,6 +581,7 @@ fn render_state_styles(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(paragraph, area);
 }
 
+/// `t.table_styles()` + `zebra_rows()` — themed table with striping. ← themekit
 fn render_table(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let block = t.block(" Table (zebra rows) ").build();
     let ts = t.table_styles();
@@ -595,6 +611,8 @@ fn render_table(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(table, area);
 }
 
+/// `t.list_styles()` + `t.scrollbar_styles()` — themed list + scrollbar. ← themekit
+/// Mouse scroll hit-testing and `ListState` are standard ratatui.
 fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut AnimState) {
     let block = t.block(" List + Scrollbar ").build();
     let ls = t.list_styles();
@@ -682,6 +700,7 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
     frame.render_stateful_widget(scrollbar, inner, &mut scroll_state);
 }
 
+/// `t.tab_styles()` — active/inactive tab styling. ← themekit
 fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
     let block = t.block(" Tabs ").build();
     let ts = t.tab_styles();
@@ -696,6 +715,7 @@ fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
     frame.render_widget(tabs, area);
 }
 
+/// `t.bar(percent).width(n).build()` — themed progress bar. ← themekit
 fn render_bar(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
     let block = t.block(" Progress Bar ").build();
     let bar = t.bar(state.progress).width(30).build();
@@ -703,6 +723,7 @@ fn render_bar(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimStat
     frame.render_widget(paragraph, area);
 }
 
+/// `t.gauge_styles()` — themed Gauge widget colors. ← themekit
 fn render_gauge(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
     let block = t.block(" Gauge ").build();
     let gs = t.gauge_styles();
@@ -715,6 +736,7 @@ fn render_gauge(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSt
     frame.render_widget(gauge, area);
 }
 
+/// `t.notification_styles()` — info/success/warning/error severity. ← themekit
 fn render_notifications(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let block = t.block(" Notifications ").build();
     let ns = t.notification_styles();
@@ -754,6 +776,7 @@ fn render_themes_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, selected
     frame.render_widget(paragraph, area);
 }
 
+/// `t.status_line()` for the footer bar. ← themekit
 fn render_footer(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     let version = env!("CARGO_PKG_VERSION");
     let theme_count = format!("{}", BUILTIN_THEMES.len());
