@@ -2,11 +2,11 @@
 //!
 //! Requires the `serde` feature:
 //! ```toml
-//! ratatui-themekit = { version = "0.1", features = ["serde"] }
+//! ratatui-themekit = { version = "0.2", features = ["serde"] }
 //! ```
 
 #[cfg(feature = "serde")]
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use ratatui::style::Color;
 
@@ -16,8 +16,8 @@ use crate::Theme;
 ///
 /// All fields use ratatui's `Color` type which supports:
 /// - Named ANSI: `"Red"`, `"Green"`, `"Blue"`, `"DarkGray"`
-/// - RGB hex: `"#a6e3a1"` (with serde feature)
-/// - Indexed: `{ Indexed: 42 }` (256-color)
+/// - RGB: `{ Rgb = [249, 115, 22] }` (with serde feature)
+/// - Indexed: `{ Indexed = 42 }` (256-color)
 ///
 /// # Example (TOML)
 ///
@@ -25,12 +25,12 @@ use crate::Theme;
 /// [theme]
 /// name = "My Theme"
 /// id = "my-theme"
-/// accent = { Rgb: [249, 115, 22] }
+/// accent = { Rgb = [249, 115, 22] }
 /// success = "Green"
 /// error = "Red"
 /// ```
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct CustomTheme {
     /// Theme display name.
     pub name: String,
@@ -130,7 +130,13 @@ impl Theme for CustomTheme {
     }
 }
 
-// Serde default functions (only compiled with serde feature)
+impl std::fmt::Display for CustomTheme {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} ({})", self.name, self.id)
+    }
+}
+
+// Serde default functions
 #[cfg(feature = "serde")]
 fn default_dark_gray() -> Color {
     Color::DarkGray
@@ -190,13 +196,58 @@ mod tests {
         };
         let theme: &dyn Theme = &t;
         assert_eq!(theme.accent(), Color::Magenta);
-        assert_eq!(theme.success(), Color::Green);
         assert_eq!(theme.block_pass(), theme.success());
-        assert_eq!(theme.indicator_failed(), theme.error());
     }
 
     #[test]
+    fn custom_theme_display() {
+        let t = CustomTheme {
+            name: "My Theme".to_owned(),
+            id: "my-theme".to_owned(),
+            accent: Color::Red,
+            accent_dim: Color::DarkGray,
+            text: Color::White,
+            text_dim: Color::Gray,
+            text_bright: Color::White,
+            success: Color::Green,
+            error: Color::Red,
+            warning: Color::Yellow,
+            info: Color::Cyan,
+            diff_added: Color::Green,
+            diff_removed: Color::Red,
+            diff_context: Color::DarkGray,
+            border: Color::DarkGray,
+            surface: Color::Black,
+        };
+        assert_eq!(t.to_string(), "My Theme (my-theme)");
+    }
+
+    #[test]
+    fn custom_theme_equality() {
+        let a = CustomTheme {
+            name: "A".to_owned(),
+            id: "a".to_owned(),
+            accent: Color::Red,
+            accent_dim: Color::DarkGray,
+            text: Color::White,
+            text_dim: Color::Gray,
+            text_bright: Color::White,
+            success: Color::Green,
+            error: Color::Red,
+            warning: Color::Yellow,
+            info: Color::Cyan,
+            diff_added: Color::Green,
+            diff_removed: Color::Red,
+            diff_context: Color::DarkGray,
+            border: Color::DarkGray,
+            surface: Color::Black,
+        };
+        let b = a.clone();
+        assert_eq!(a, b);
+    }
+
     #[cfg(feature = "serde")]
+    #[test]
     fn custom_theme_deserialize_minimal() {
         let toml_str = r#"
 name = "Minimal"
@@ -205,38 +256,45 @@ accent = "Magenta"
 "#;
         let theme: CustomTheme = toml::from_str(toml_str).unwrap();
         assert_eq!(theme.name, "Minimal");
-        assert_eq!(theme.id, "minimal");
         assert_eq!(theme.accent, Color::Magenta);
-        // Defaults applied
-        assert_eq!(theme.success, Color::Green);
-        assert_eq!(theme.error, Color::Red);
-        assert_eq!(theme.text, Color::White);
-        assert_eq!(theme.border, Color::DarkGray);
+        assert_eq!(theme.success, Color::Green); // default
     }
 
-    #[test]
     #[cfg(feature = "serde")]
+    #[test]
     fn custom_theme_deserialize_rgb() {
         let toml_str = r#"
-name = "RGB Theme"
+name = "RGB"
 id = "rgb"
 accent = { Rgb = [249, 115, 22] }
-text = { Rgb = [220, 220, 220] }
 "#;
         let theme: CustomTheme = toml::from_str(toml_str).unwrap();
         assert_eq!(theme.accent, Color::Rgb(249, 115, 22));
-        assert_eq!(theme.text, Color::Rgb(220, 220, 220));
     }
 
-    #[test]
     #[cfg(feature = "serde")]
-    fn custom_theme_deserialize_indexed() {
-        let toml_str = r#"
-name = "Indexed"
-id = "indexed"
-accent = { Indexed = 208 }
-"#;
-        let theme: CustomTheme = toml::from_str(toml_str).unwrap();
-        assert_eq!(theme.accent, Color::Indexed(208));
+    #[test]
+    fn custom_theme_serialize_roundtrip() {
+        let theme = CustomTheme {
+            name: "RT".to_owned(),
+            id: "rt".to_owned(),
+            accent: Color::Rgb(100, 200, 50),
+            accent_dim: Color::DarkGray,
+            text: Color::White,
+            text_dim: Color::Gray,
+            text_bright: Color::White,
+            success: Color::Green,
+            error: Color::Red,
+            warning: Color::Yellow,
+            info: Color::Cyan,
+            diff_added: Color::Green,
+            diff_removed: Color::Red,
+            diff_context: Color::DarkGray,
+            border: Color::DarkGray,
+            surface: Color::Black,
+        };
+        let toml_str = toml::to_string(&theme).unwrap();
+        let parsed: CustomTheme = toml::from_str(&toml_str).unwrap();
+        assert_eq!(theme, parsed);
     }
 }

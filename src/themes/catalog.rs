@@ -1,123 +1,11 @@
-//! Built-in theme implementations.
+//! All built-in theme color definitions.
 //!
-//! Each theme is a `ThemeData` const — pure data, no code repetition.
-//! Adding a new theme: add a const + register in [`BUILTIN_THEMES`].
+//! Each constant defines the 15 color slots for one theme.
+//! Adding a new theme: create a const here + register in `BUILTIN_THEMES`.
 
 use ratatui::style::Color;
 
-use crate::Theme;
-
-/// A theme defined as pure data. Implements `Theme` automatically.
-///
-/// All built-in themes are `ThemeData` constants. Custom themes use
-/// [`CustomTheme`](crate::CustomTheme) (with serde + owned strings).
-#[derive(Debug, Clone)]
-pub struct ThemeData {
-    /// Human-readable display name.
-    pub name: &'static str,
-    /// Short config identifier (e.g. `"catppuccin"`).
-    pub id: &'static str,
-    /// Primary accent color.
-    pub accent: Color,
-    /// Muted accent.
-    pub accent_dim: Color,
-    /// Default text.
-    pub text: Color,
-    /// Dimmed text.
-    pub text_dim: Color,
-    /// Bright/emphasis text.
-    pub text_bright: Color,
-    /// Success/pass.
-    pub success: Color,
-    /// Error/fail.
-    pub error: Color,
-    /// Warning/pending.
-    pub warning: Color,
-    /// Informational.
-    pub info: Color,
-    /// Diff added lines.
-    pub diff_added: Color,
-    /// Diff removed lines.
-    pub diff_removed: Color,
-    /// Diff context/unchanged.
-    pub diff_context: Color,
-    /// Panel borders.
-    pub border: Color,
-    /// Background highlight (selected/focused).
-    pub surface: Color,
-}
-
-impl Theme for ThemeData {
-    fn name(&self) -> &str {
-        self.name
-    }
-    fn id(&self) -> &str {
-        self.id
-    }
-    fn accent(&self) -> Color {
-        self.accent
-    }
-    fn accent_dim(&self) -> Color {
-        self.accent_dim
-    }
-    fn text(&self) -> Color {
-        self.text
-    }
-    fn text_dim(&self) -> Color {
-        self.text_dim
-    }
-    fn text_bright(&self) -> Color {
-        self.text_bright
-    }
-    fn success(&self) -> Color {
-        self.success
-    }
-    fn error(&self) -> Color {
-        self.error
-    }
-    fn warning(&self) -> Color {
-        self.warning
-    }
-    fn info(&self) -> Color {
-        self.info
-    }
-    fn diff_added(&self) -> Color {
-        self.diff_added
-    }
-    fn diff_removed(&self) -> Color {
-        self.diff_removed
-    }
-    fn diff_context(&self) -> Color {
-        self.diff_context
-    }
-    fn border(&self) -> Color {
-        self.border
-    }
-    fn surface(&self) -> Color {
-        self.surface
-    }
-}
-
-// ── Registry ───────────────────────────────────────────────────
-//
-// Single source of truth. `resolve_theme`, `builtin_themes`, and
-// `available_theme_ids` all derive from this array.
-
-/// All built-in themes in display order. `NoColor` excluded (special).
-pub static BUILTIN_THEMES: &[ThemeData] = &[
-    CATPPUCCIN_MOCHA,
-    DRACULA,
-    NORD,
-    GRUVBOX_DARK,
-    ONE_DARK,
-    SOLARIZED_DARK,
-    TAILWIND_DARK,
-    TOKYO_NIGHT,
-    ROSE_PINE,
-    TERMINAL_NATIVE,
-];
-
-// ── Theme definitions ──────────────────────────────────────────
+use super::ThemeData;
 
 /// Catppuccin Mocha — warm dark theme with pastel colors.
 pub const CATPPUCCIN_MOCHA: ThemeData = ThemeData {
@@ -219,7 +107,7 @@ pub const ONE_DARK: ThemeData = ThemeData {
     surface: Color::Rgb(44, 49, 58),
 };
 
-/// Solarized Dark — Ethan Schoonover's precision-engineered dark theme.
+/// Solarized Dark — precision-engineered dark theme.
 pub const SOLARIZED_DARK: ThemeData = ThemeData {
     name: "Solarized Dark",
     id: "solarized",
@@ -259,7 +147,7 @@ pub const TAILWIND_DARK: ThemeData = ThemeData {
     surface: Color::Rgb(30, 41, 59),
 };
 
-/// Tokyo Night — dark theme with vivid blue accents (by enkia).
+/// Tokyo Night — vivid blue accents (by enkia).
 pub const TOKYO_NIGHT: ThemeData = ThemeData {
     name: "Tokyo Night",
     id: "tokyo-night",
@@ -279,7 +167,7 @@ pub const TOKYO_NIGHT: ThemeData = ThemeData {
     surface: Color::Rgb(32, 35, 48),
 };
 
-/// Rosé Pine — dark theme with muted, elegant rose tones (by mvllow).
+/// Rosé Pine — elegant muted rose tones (by mvllow).
 pub const ROSE_PINE: ThemeData = ThemeData {
     name: "Rosé Pine",
     id: "rose-pine",
@@ -299,7 +187,7 @@ pub const ROSE_PINE: ThemeData = ThemeData {
     surface: Color::Rgb(64, 61, 82),
 };
 
-/// Terminal Native — uses named ANSI colors only (no truecolor needed).
+/// Terminal Native — ANSI named colors only (no truecolor needed).
 pub const TERMINAL_NATIVE: ThemeData = ThemeData {
     name: "Terminal Native",
     id: "terminal",
@@ -319,7 +207,7 @@ pub const TERMINAL_NATIVE: ThemeData = ThemeData {
     surface: Color::Black,
 };
 
-/// `NO_COLOR` compliant — all `Color::Reset`. Respects <https://no-color.org/>.
+/// No Color — all `Color::Reset`. Respects <https://no-color.org/>.
 pub const NO_COLOR: ThemeData = ThemeData {
     name: "No Color",
     id: "no-color",
@@ -338,3 +226,17 @@ pub const NO_COLOR: ThemeData = ThemeData {
     border: Color::Reset,
     surface: Color::Reset,
 };
+
+/// All built-in themes in display order (`NoColor` excluded — it's special).
+pub static BUILTIN_THEMES: &[ThemeData] = &[
+    CATPPUCCIN_MOCHA,
+    DRACULA,
+    NORD,
+    GRUVBOX_DARK,
+    ONE_DARK,
+    SOLARIZED_DARK,
+    TAILWIND_DARK,
+    TOKYO_NIGHT,
+    ROSE_PINE,
+    TERMINAL_NATIVE,
+];
