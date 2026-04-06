@@ -91,11 +91,31 @@ mod themes;
 
 use ratatui::style::Color;
 
-// Re-export all built-in themes
+// Re-export theme data type + all built-in theme constants
+pub use themes::ThemeData;
+#[allow(unused_imports)]
 pub use themes::{
-    CatppuccinMocha, Dracula, GruvboxDark, NoColor, Nord, OneDark, SolarizedDark, TailwindDark,
-    TerminalNative,
+    CATPPUCCIN_MOCHA, DRACULA, GRUVBOX_DARK, NO_COLOR, NORD, ONE_DARK, ROSE_PINE, SOLARIZED_DARK,
+    TAILWIND_DARK, TERMINAL_NATIVE, TOKYO_NIGHT,
 };
+
+/// `PascalCase` aliases for ergonomic usage: `let t = CatppuccinMocha;`
+#[allow(non_upper_case_globals, missing_docs, clippy::wildcard_imports)]
+mod aliases {
+    use super::*;
+    pub const CatppuccinMocha: ThemeData = CATPPUCCIN_MOCHA;
+    pub const Dracula: ThemeData = DRACULA;
+    pub const Nord: ThemeData = NORD;
+    pub const GruvboxDark: ThemeData = GRUVBOX_DARK;
+    pub const OneDark: ThemeData = ONE_DARK;
+    pub const SolarizedDark: ThemeData = SOLARIZED_DARK;
+    pub const TailwindDark: ThemeData = TAILWIND_DARK;
+    pub const TokyoNight: ThemeData = TOKYO_NIGHT;
+    pub const RosePine: ThemeData = ROSE_PINE;
+    pub const TerminalNative: ThemeData = TERMINAL_NATIVE;
+    pub const NoColor: ThemeData = NO_COLOR;
+}
+pub use aliases::*;
 
 // Re-export custom theme (serde-powered user themes)
 pub use custom::CustomTheme;
@@ -252,19 +272,21 @@ pub trait Theme: Send + Sync {
 #[must_use]
 pub fn resolve_theme(id: &str) -> Box<dyn Theme> {
     if no_color_active() {
-        return Box::new(NoColor);
+        return Box::new(NO_COLOR);
     }
     match id {
-        "dracula" => Box::new(Dracula),
-        "nord" => Box::new(Nord),
-        "gruvbox" => Box::new(GruvboxDark),
-        "one-dark" => Box::new(OneDark),
-        "solarized" => Box::new(SolarizedDark),
-        "tailwind" => Box::new(TailwindDark),
-        "terminal" => Box::new(TerminalNative),
-        "no-color" => Box::new(NoColor),
+        "dracula" => Box::new(DRACULA),
+        "nord" => Box::new(NORD),
+        "gruvbox" => Box::new(GRUVBOX_DARK),
+        "one-dark" => Box::new(ONE_DARK),
+        "solarized" => Box::new(SOLARIZED_DARK),
+        "tailwind" => Box::new(TAILWIND_DARK),
+        "tokyo-night" => Box::new(TOKYO_NIGHT),
+        "rose-pine" => Box::new(ROSE_PINE),
+        "terminal" => Box::new(TERMINAL_NATIVE),
+        "no-color" => Box::new(NO_COLOR),
         // "catppuccin" and any unknown ID → default theme
-        _ => Box::new(CatppuccinMocha),
+        _ => Box::new(CATPPUCCIN_MOCHA),
     }
 }
 
@@ -272,14 +294,16 @@ pub fn resolve_theme(id: &str) -> Box<dyn Theme> {
 #[must_use]
 pub fn builtin_themes() -> Vec<Box<dyn Theme>> {
     vec![
-        Box::new(CatppuccinMocha),
-        Box::new(Dracula),
-        Box::new(Nord),
-        Box::new(GruvboxDark),
-        Box::new(OneDark),
-        Box::new(SolarizedDark),
-        Box::new(TailwindDark),
-        Box::new(TerminalNative),
+        Box::new(CATPPUCCIN_MOCHA),
+        Box::new(DRACULA),
+        Box::new(NORD),
+        Box::new(GRUVBOX_DARK),
+        Box::new(ONE_DARK),
+        Box::new(SOLARIZED_DARK),
+        Box::new(TAILWIND_DARK),
+        Box::new(TOKYO_NIGHT),
+        Box::new(ROSE_PINE),
+        Box::new(TERMINAL_NATIVE),
     ]
 }
 
@@ -294,6 +318,8 @@ pub fn available_theme_ids() -> Vec<&'static str> {
         "one-dark",
         "solarized",
         "tailwind",
+        "tokyo-night",
+        "rose-pine",
         "terminal",
     ]
 }

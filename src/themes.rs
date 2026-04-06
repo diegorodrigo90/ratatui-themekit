@@ -1,506 +1,333 @@
 //! Built-in theme implementations.
+//!
+//! Each theme is a `ThemeData` const — pure data, no code repetition.
+//! `ThemeData` implements `Theme` once; adding a new theme is one const.
 
 use ratatui::style::Color;
 
 use crate::Theme;
 
-/// Catppuccin Mocha — warm dark theme with pastel colors.
-pub struct CatppuccinMocha;
+/// A theme defined as pure data. Implements `Theme` automatically.
+///
+/// All built-in themes are `ThemeData` constants. Custom themes use
+/// the same struct via `CustomTheme` (with serde support).
+#[derive(Debug, Clone)]
+pub struct ThemeData {
+    /// Human-readable display name.
+    pub name: &'static str,
+    /// Short config identifier (e.g. `"catppuccin"`).
+    pub id: &'static str,
+    /// Primary accent color.
+    pub accent: Color,
+    /// Muted accent.
+    pub accent_dim: Color,
+    /// Default text.
+    pub text: Color,
+    /// Dimmed text.
+    pub text_dim: Color,
+    /// Bright/emphasis text.
+    pub text_bright: Color,
+    /// Success/pass.
+    pub success: Color,
+    /// Error/fail.
+    pub error: Color,
+    /// Warning/pending.
+    pub warning: Color,
+    /// Informational.
+    pub info: Color,
+    /// Diff added lines.
+    pub diff_added: Color,
+    /// Diff removed lines.
+    pub diff_removed: Color,
+    /// Diff context/unchanged.
+    pub diff_context: Color,
+    /// Panel borders.
+    pub border: Color,
+    /// Background highlight (selected/focused).
+    pub surface: Color,
+}
 
-impl Theme for CatppuccinMocha {
-    fn name(&self) -> &'static str {
-        "Catppuccin Mocha"
+impl Theme for ThemeData {
+    fn name(&self) -> &str {
+        self.name
     }
-    fn id(&self) -> &'static str {
-        "catppuccin"
+    fn id(&self) -> &str {
+        self.id
     }
     fn accent(&self) -> Color {
-        Color::Rgb(137, 180, 250)
+        self.accent
     }
     fn accent_dim(&self) -> Color {
-        Color::Rgb(108, 112, 134)
+        self.accent_dim
     }
     fn text(&self) -> Color {
-        Color::Rgb(205, 214, 244)
+        self.text
     }
     fn text_dim(&self) -> Color {
-        Color::Rgb(127, 132, 156)
+        self.text_dim
     }
     fn text_bright(&self) -> Color {
-        Color::Rgb(245, 224, 220)
+        self.text_bright
     }
     fn success(&self) -> Color {
-        Color::Rgb(166, 227, 161)
+        self.success
     }
     fn error(&self) -> Color {
-        Color::Rgb(243, 139, 168)
+        self.error
     }
     fn warning(&self) -> Color {
-        Color::Rgb(249, 226, 175)
+        self.warning
     }
     fn info(&self) -> Color {
-        Color::Rgb(137, 220, 235)
+        self.info
     }
     fn diff_added(&self) -> Color {
-        Color::Rgb(166, 227, 161)
+        self.diff_added
     }
     fn diff_removed(&self) -> Color {
-        Color::Rgb(243, 139, 168)
+        self.diff_removed
     }
     fn diff_context(&self) -> Color {
-        Color::Rgb(127, 132, 156)
+        self.diff_context
     }
     fn border(&self) -> Color {
-        Color::Rgb(69, 71, 90)
+        self.border
     }
     fn surface(&self) -> Color {
-        Color::Rgb(49, 50, 68)
+        self.surface
     }
 }
+
+// ── Built-in themes (pure data) ────────────────────────────────
+
+/// Catppuccin Mocha — warm dark theme with pastel colors.
+pub const CATPPUCCIN_MOCHA: ThemeData = ThemeData {
+    name: "Catppuccin Mocha",
+    id: "catppuccin",
+    accent: Color::Rgb(137, 180, 250),
+    accent_dim: Color::Rgb(108, 112, 134),
+    text: Color::Rgb(205, 214, 244),
+    text_dim: Color::Rgb(127, 132, 156),
+    text_bright: Color::Rgb(245, 224, 220),
+    success: Color::Rgb(166, 227, 161),
+    error: Color::Rgb(243, 139, 168),
+    warning: Color::Rgb(249, 226, 175),
+    info: Color::Rgb(137, 220, 235),
+    diff_added: Color::Rgb(166, 227, 161),
+    diff_removed: Color::Rgb(243, 139, 168),
+    diff_context: Color::Rgb(127, 132, 156),
+    border: Color::Rgb(69, 71, 90),
+    surface: Color::Rgb(49, 50, 68),
+};
 
 /// Dracula — dark theme with vivid colors.
-pub struct Dracula;
+pub const DRACULA: ThemeData = ThemeData {
+    name: "Dracula",
+    id: "dracula",
+    accent: Color::Rgb(189, 147, 249),
+    accent_dim: Color::Rgb(98, 114, 164),
+    text: Color::Rgb(248, 248, 242),
+    text_dim: Color::Rgb(98, 114, 164),
+    text_bright: Color::Rgb(255, 255, 255),
+    success: Color::Rgb(80, 250, 123),
+    error: Color::Rgb(255, 85, 85),
+    warning: Color::Rgb(241, 250, 140),
+    info: Color::Rgb(139, 233, 253),
+    diff_added: Color::Rgb(80, 250, 123),
+    diff_removed: Color::Rgb(255, 85, 85),
+    diff_context: Color::Rgb(98, 114, 164),
+    border: Color::Rgb(68, 71, 90),
+    surface: Color::Rgb(55, 59, 81),
+};
 
-impl Theme for Dracula {
-    fn name(&self) -> &'static str {
-        "Dracula"
-    }
-    fn id(&self) -> &'static str {
-        "dracula"
-    }
-    fn accent(&self) -> Color {
-        Color::Rgb(189, 147, 249)
-    }
-    fn accent_dim(&self) -> Color {
-        Color::Rgb(98, 114, 164)
-    }
-    fn text(&self) -> Color {
-        Color::Rgb(248, 248, 242)
-    }
-    fn text_dim(&self) -> Color {
-        Color::Rgb(98, 114, 164)
-    }
-    fn text_bright(&self) -> Color {
-        Color::Rgb(255, 255, 255)
-    }
-    fn success(&self) -> Color {
-        Color::Rgb(80, 250, 123)
-    }
-    fn error(&self) -> Color {
-        Color::Rgb(255, 85, 85)
-    }
-    fn warning(&self) -> Color {
-        Color::Rgb(241, 250, 140)
-    }
-    fn info(&self) -> Color {
-        Color::Rgb(139, 233, 253)
-    }
-    fn diff_added(&self) -> Color {
-        Color::Rgb(80, 250, 123)
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Rgb(255, 85, 85)
-    }
-    fn diff_context(&self) -> Color {
-        Color::Rgb(98, 114, 164)
-    }
-    fn border(&self) -> Color {
-        Color::Rgb(68, 71, 90)
-    }
-    fn surface(&self) -> Color {
-        Color::Rgb(50, 52, 68)
-    }
-}
-
-/// Nord — arctic blue-gray color palette.
-pub struct Nord;
-
-impl Theme for Nord {
-    fn name(&self) -> &'static str {
-        "Nord"
-    }
-    fn id(&self) -> &'static str {
-        "nord"
-    }
-    fn accent(&self) -> Color {
-        Color::Rgb(136, 192, 208)
-    }
-    fn accent_dim(&self) -> Color {
-        Color::Rgb(76, 86, 106)
-    }
-    fn text(&self) -> Color {
-        Color::Rgb(216, 222, 233)
-    }
-    fn text_dim(&self) -> Color {
-        Color::Rgb(76, 86, 106)
-    }
-    fn text_bright(&self) -> Color {
-        Color::Rgb(236, 239, 244)
-    }
-    fn success(&self) -> Color {
-        Color::Rgb(163, 190, 140)
-    }
-    fn error(&self) -> Color {
-        Color::Rgb(191, 97, 106)
-    }
-    fn warning(&self) -> Color {
-        Color::Rgb(235, 203, 139)
-    }
-    fn info(&self) -> Color {
-        Color::Rgb(136, 192, 208)
-    }
-    fn diff_added(&self) -> Color {
-        Color::Rgb(163, 190, 140)
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Rgb(191, 97, 106)
-    }
-    fn diff_context(&self) -> Color {
-        Color::Rgb(76, 86, 106)
-    }
-    fn border(&self) -> Color {
-        Color::Rgb(59, 66, 82)
-    }
-    fn surface(&self) -> Color {
-        Color::Rgb(46, 52, 64)
-    }
-}
+/// Nord — arctic blue-gray theme.
+pub const NORD: ThemeData = ThemeData {
+    name: "Nord",
+    id: "nord",
+    accent: Color::Rgb(136, 192, 208),
+    accent_dim: Color::Rgb(76, 86, 106),
+    text: Color::Rgb(216, 222, 233),
+    text_dim: Color::Rgb(76, 86, 106),
+    text_bright: Color::Rgb(236, 239, 244),
+    success: Color::Rgb(163, 190, 140),
+    error: Color::Rgb(191, 97, 106),
+    warning: Color::Rgb(235, 203, 139),
+    info: Color::Rgb(129, 161, 193),
+    diff_added: Color::Rgb(163, 190, 140),
+    diff_removed: Color::Rgb(191, 97, 106),
+    diff_context: Color::Rgb(76, 86, 106),
+    border: Color::Rgb(59, 66, 82),
+    surface: Color::Rgb(46, 52, 64),
+};
 
 /// Gruvbox Dark — retro warm dark theme.
-pub struct GruvboxDark;
+pub const GRUVBOX_DARK: ThemeData = ThemeData {
+    name: "Gruvbox Dark",
+    id: "gruvbox",
+    accent: Color::Rgb(215, 153, 33),
+    accent_dim: Color::Rgb(146, 131, 116),
+    text: Color::Rgb(235, 219, 178),
+    text_dim: Color::Rgb(146, 131, 116),
+    text_bright: Color::Rgb(251, 241, 199),
+    success: Color::Rgb(142, 192, 124),
+    error: Color::Rgb(204, 36, 29),
+    warning: Color::Rgb(250, 189, 47),
+    info: Color::Rgb(131, 165, 152),
+    diff_added: Color::Rgb(142, 192, 124),
+    diff_removed: Color::Rgb(204, 36, 29),
+    diff_context: Color::Rgb(146, 131, 116),
+    border: Color::Rgb(80, 73, 69),
+    surface: Color::Rgb(60, 56, 54),
+};
 
-impl Theme for GruvboxDark {
-    fn name(&self) -> &'static str {
-        "Gruvbox Dark"
-    }
-    fn id(&self) -> &'static str {
-        "gruvbox"
-    }
-    fn accent(&self) -> Color {
-        Color::Rgb(215, 153, 33)
-    }
-    fn accent_dim(&self) -> Color {
-        Color::Rgb(124, 111, 100)
-    }
-    fn text(&self) -> Color {
-        Color::Rgb(235, 219, 178)
-    }
-    fn text_dim(&self) -> Color {
-        Color::Rgb(146, 131, 116)
-    }
-    fn text_bright(&self) -> Color {
-        Color::Rgb(251, 241, 199)
-    }
-    fn success(&self) -> Color {
-        Color::Rgb(184, 187, 38)
-    }
-    fn error(&self) -> Color {
-        Color::Rgb(251, 73, 52)
-    }
-    fn warning(&self) -> Color {
-        Color::Rgb(250, 189, 47)
-    }
-    fn info(&self) -> Color {
-        Color::Rgb(131, 165, 152)
-    }
-    fn diff_added(&self) -> Color {
-        Color::Rgb(184, 187, 38)
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Rgb(251, 73, 52)
-    }
-    fn diff_context(&self) -> Color {
-        Color::Rgb(146, 131, 116)
-    }
-    fn border(&self) -> Color {
-        Color::Rgb(80, 73, 69)
-    }
-    fn surface(&self) -> Color {
-        Color::Rgb(60, 56, 54)
-    }
-}
+/// One Dark — Atom editor's iconic theme.
+pub const ONE_DARK: ThemeData = ThemeData {
+    name: "One Dark",
+    id: "one-dark",
+    accent: Color::Rgb(97, 175, 239),
+    accent_dim: Color::Rgb(92, 99, 112),
+    text: Color::Rgb(171, 178, 191),
+    text_dim: Color::Rgb(92, 99, 112),
+    text_bright: Color::Rgb(209, 212, 219),
+    success: Color::Rgb(152, 195, 121),
+    error: Color::Rgb(224, 108, 117),
+    warning: Color::Rgb(229, 192, 123),
+    info: Color::Rgb(86, 182, 194),
+    diff_added: Color::Rgb(152, 195, 121),
+    diff_removed: Color::Rgb(224, 108, 117),
+    diff_context: Color::Rgb(92, 99, 112),
+    border: Color::Rgb(62, 68, 81),
+    surface: Color::Rgb(44, 49, 58),
+};
 
-/// One Dark — Atom's iconic dark theme.
-pub struct OneDark;
+/// Solarized Dark — Ethan Schoonover's precision-engineered dark theme.
+pub const SOLARIZED_DARK: ThemeData = ThemeData {
+    name: "Solarized Dark",
+    id: "solarized",
+    accent: Color::Rgb(38, 139, 210),
+    accent_dim: Color::Rgb(88, 110, 117),
+    text: Color::Rgb(147, 161, 161),
+    text_dim: Color::Rgb(88, 110, 117),
+    text_bright: Color::Rgb(253, 246, 227),
+    success: Color::Rgb(133, 153, 0),
+    error: Color::Rgb(220, 50, 47),
+    warning: Color::Rgb(181, 137, 0),
+    info: Color::Rgb(42, 161, 152),
+    diff_added: Color::Rgb(133, 153, 0),
+    diff_removed: Color::Rgb(220, 50, 47),
+    diff_context: Color::Rgb(88, 110, 117),
+    border: Color::Rgb(7, 54, 66),
+    surface: Color::Rgb(0, 43, 54),
+};
 
-impl Theme for OneDark {
-    fn name(&self) -> &'static str {
-        "One Dark"
-    }
-    fn id(&self) -> &'static str {
-        "one-dark"
-    }
-    fn accent(&self) -> Color {
-        Color::Rgb(97, 175, 239)
-    }
-    fn accent_dim(&self) -> Color {
-        Color::Rgb(92, 99, 112)
-    }
-    fn text(&self) -> Color {
-        Color::Rgb(171, 178, 191)
-    }
-    fn text_dim(&self) -> Color {
-        Color::Rgb(92, 99, 112)
-    }
-    fn text_bright(&self) -> Color {
-        Color::Rgb(220, 223, 228)
-    }
-    fn success(&self) -> Color {
-        Color::Rgb(152, 195, 121)
-    }
-    fn error(&self) -> Color {
-        Color::Rgb(224, 108, 117)
-    }
-    fn warning(&self) -> Color {
-        Color::Rgb(229, 192, 123)
-    }
-    fn info(&self) -> Color {
-        Color::Rgb(86, 182, 194)
-    }
-    fn diff_added(&self) -> Color {
-        Color::Rgb(152, 195, 121)
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Rgb(224, 108, 117)
-    }
-    fn diff_context(&self) -> Color {
-        Color::Rgb(92, 99, 112)
-    }
-    fn border(&self) -> Color {
-        Color::Rgb(62, 68, 81)
-    }
-    fn surface(&self) -> Color {
-        Color::Rgb(40, 44, 52)
-    }
-}
+/// Tailwind Dark — based on Tailwind CSS color palette.
+pub const TAILWIND_DARK: ThemeData = ThemeData {
+    name: "Tailwind Dark",
+    id: "tailwind",
+    accent: Color::Rgb(99, 102, 241),
+    accent_dim: Color::Rgb(67, 56, 202),
+    text: Color::Rgb(226, 232, 240),
+    text_dim: Color::Rgb(148, 163, 184),
+    text_bright: Color::Rgb(248, 250, 252),
+    success: Color::Rgb(34, 197, 94),
+    error: Color::Rgb(239, 68, 68),
+    warning: Color::Rgb(234, 179, 8),
+    info: Color::Rgb(14, 165, 233),
+    diff_added: Color::Rgb(34, 197, 94),
+    diff_removed: Color::Rgb(239, 68, 68),
+    diff_context: Color::Rgb(148, 163, 184),
+    border: Color::Rgb(51, 65, 85),
+    surface: Color::Rgb(30, 41, 59),
+};
 
-/// Solarized Dark — precision-engineered color scheme.
-pub struct SolarizedDark;
-
-impl Theme for SolarizedDark {
-    fn name(&self) -> &'static str {
-        "Solarized Dark"
-    }
-    fn id(&self) -> &'static str {
-        "solarized"
-    }
-    fn accent(&self) -> Color {
-        Color::Rgb(38, 139, 210)
-    }
-    fn accent_dim(&self) -> Color {
-        Color::Rgb(88, 110, 117)
-    }
-    fn text(&self) -> Color {
-        Color::Rgb(131, 148, 150)
-    }
-    fn text_dim(&self) -> Color {
-        Color::Rgb(88, 110, 117)
-    }
-    fn text_bright(&self) -> Color {
-        Color::Rgb(238, 232, 213)
-    }
-    fn success(&self) -> Color {
-        Color::Rgb(133, 153, 0)
-    }
-    fn error(&self) -> Color {
-        Color::Rgb(220, 50, 47)
-    }
-    fn warning(&self) -> Color {
-        Color::Rgb(181, 137, 0)
-    }
-    fn info(&self) -> Color {
-        Color::Rgb(42, 161, 152)
-    }
-    fn diff_added(&self) -> Color {
-        Color::Rgb(133, 153, 0)
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Rgb(220, 50, 47)
-    }
-    fn diff_context(&self) -> Color {
-        Color::Rgb(88, 110, 117)
-    }
-    fn border(&self) -> Color {
-        Color::Rgb(7, 54, 66)
-    }
-    fn surface(&self) -> Color {
-        Color::Rgb(0, 43, 54)
-    }
-}
-
-/// Tailwind Dark — built from ratatui's Tailwind CSS palette.
+/// Tokyo Night — dark theme with vivid blue accents.
 ///
-/// Uses `ratatui::style::palette::tailwind` constants directly.
-/// These are the exact Tailwind CSS colors — widely recognized
-/// and battle-tested for UI design.
-pub struct TailwindDark;
+/// Based on the popular VS Code / Neovim theme by enkia.
+pub const TOKYO_NIGHT: ThemeData = ThemeData {
+    name: "Tokyo Night",
+    id: "tokyo-night",
+    accent: Color::Rgb(122, 162, 247),
+    accent_dim: Color::Rgb(61, 89, 161),
+    text: Color::Rgb(169, 177, 214),
+    text_dim: Color::Rgb(120, 124, 153),
+    text_bright: Color::Rgb(192, 202, 245),
+    success: Color::Rgb(158, 206, 106),
+    error: Color::Rgb(247, 118, 142),
+    warning: Color::Rgb(224, 175, 104),
+    info: Color::Rgb(125, 207, 255),
+    diff_added: Color::Rgb(158, 206, 106),
+    diff_removed: Color::Rgb(247, 118, 142),
+    diff_context: Color::Rgb(120, 124, 153),
+    border: Color::Rgb(41, 53, 90),
+    surface: Color::Rgb(32, 35, 48),
+};
 
-impl Theme for TailwindDark {
-    fn name(&self) -> &'static str {
-        "Tailwind Dark"
-    }
-    fn id(&self) -> &'static str {
-        "tailwind"
-    }
-    fn accent(&self) -> Color {
-        ratatui::style::palette::tailwind::BLUE.c400
-    }
-    fn accent_dim(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c500
-    }
-    fn text(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c200
-    }
-    fn text_dim(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c500
-    }
-    fn text_bright(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c50
-    }
-    fn success(&self) -> Color {
-        ratatui::style::palette::tailwind::EMERALD.c400
-    }
-    fn error(&self) -> Color {
-        ratatui::style::palette::tailwind::RED.c400
-    }
-    fn warning(&self) -> Color {
-        ratatui::style::palette::tailwind::AMBER.c400
-    }
-    fn info(&self) -> Color {
-        ratatui::style::palette::tailwind::CYAN.c400
-    }
-    fn diff_added(&self) -> Color {
-        ratatui::style::palette::tailwind::GREEN.c400
-    }
-    fn diff_removed(&self) -> Color {
-        ratatui::style::palette::tailwind::RED.c400
-    }
-    fn diff_context(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c500
-    }
-    fn border(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c700
-    }
-    fn surface(&self) -> Color {
-        ratatui::style::palette::tailwind::SLATE.c800
-    }
-}
-
-/// Terminal-native theme — uses ANSI named colors.
+/// Rosé Pine — dark theme with muted, elegant rose tones.
 ///
-/// Instead of hardcoding RGB values, this theme uses the 16 standard
-/// ANSI colors (`Color::Red`, `Color::Green`, etc.). These colors
-/// are defined by the user's terminal emulator theme — if they have
-/// Catppuccin, Dracula, or Nord installed in their terminal, this
-/// theme automatically matches.
+/// Based on the Rosé Pine palette by mvllow.
+pub const ROSE_PINE: ThemeData = ThemeData {
+    name: "Rosé Pine",
+    id: "rose-pine",
+    accent: Color::Rgb(235, 188, 186),
+    accent_dim: Color::Rgb(196, 167, 231),
+    text: Color::Rgb(224, 222, 244),
+    text_dim: Color::Rgb(144, 140, 170),
+    text_bright: Color::Rgb(224, 222, 244),
+    success: Color::Rgb(49, 116, 143),
+    error: Color::Rgb(235, 111, 146),
+    warning: Color::Rgb(246, 193, 119),
+    info: Color::Rgb(156, 207, 216),
+    diff_added: Color::Rgb(156, 207, 216),
+    diff_removed: Color::Rgb(235, 111, 146),
+    diff_context: Color::Rgb(110, 106, 134),
+    border: Color::Rgb(38, 35, 58),
+    surface: Color::Rgb(64, 61, 82),
+};
+
+// ── Special themes ─────────────────────────────────────────────
+
+/// Terminal Native — uses named ANSI colors only.
 ///
-/// Best for: apps that should "blend in" with the user's terminal.
-pub struct TerminalNative;
+/// Works on any terminal without truecolor support. Colors adapt
+/// to the user's terminal color scheme automatically.
+pub const TERMINAL_NATIVE: ThemeData = ThemeData {
+    name: "Terminal Native",
+    id: "terminal",
+    accent: Color::Blue,
+    accent_dim: Color::DarkGray,
+    text: Color::White,
+    text_dim: Color::DarkGray,
+    text_bright: Color::White,
+    success: Color::Green,
+    error: Color::Red,
+    warning: Color::Yellow,
+    info: Color::Cyan,
+    diff_added: Color::Green,
+    diff_removed: Color::Red,
+    diff_context: Color::DarkGray,
+    border: Color::DarkGray,
+    surface: Color::Black,
+};
 
-impl Theme for TerminalNative {
-    fn name(&self) -> &'static str {
-        "Terminal Native"
-    }
-    fn id(&self) -> &'static str {
-        "terminal"
-    }
-    fn accent(&self) -> Color {
-        Color::Blue
-    }
-    fn accent_dim(&self) -> Color {
-        Color::DarkGray
-    }
-    fn text(&self) -> Color {
-        Color::White
-    }
-    fn text_dim(&self) -> Color {
-        Color::Gray
-    }
-    fn text_bright(&self) -> Color {
-        Color::White
-    }
-    fn success(&self) -> Color {
-        Color::Green
-    }
-    fn error(&self) -> Color {
-        Color::Red
-    }
-    fn warning(&self) -> Color {
-        Color::Yellow
-    }
-    fn info(&self) -> Color {
-        Color::Cyan
-    }
-    fn diff_added(&self) -> Color {
-        Color::Green
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Red
-    }
-    fn diff_context(&self) -> Color {
-        Color::DarkGray
-    }
-    fn border(&self) -> Color {
-        Color::DarkGray
-    }
-    fn surface(&self) -> Color {
-        Color::Black
-    }
-}
-
-/// `NO_COLOR` compliant theme — all colors reset.
+/// `NO_COLOR` compliant theme — all colors are `Color::Reset`.
 ///
-/// Used when `NO_COLOR` env var is set. Safe for pipes, CI,
-/// screen readers, and minimal terminals.
-pub struct NoColor;
-
-impl Theme for NoColor {
-    fn name(&self) -> &'static str {
-        "No Color"
-    }
-    fn id(&self) -> &'static str {
-        "no-color"
-    }
-    fn accent(&self) -> Color {
-        Color::Reset
-    }
-    fn accent_dim(&self) -> Color {
-        Color::Reset
-    }
-    fn text(&self) -> Color {
-        Color::Reset
-    }
-    fn text_dim(&self) -> Color {
-        Color::Reset
-    }
-    fn text_bright(&self) -> Color {
-        Color::Reset
-    }
-    fn success(&self) -> Color {
-        Color::Reset
-    }
-    fn error(&self) -> Color {
-        Color::Reset
-    }
-    fn warning(&self) -> Color {
-        Color::Reset
-    }
-    fn info(&self) -> Color {
-        Color::Reset
-    }
-    fn diff_added(&self) -> Color {
-        Color::Reset
-    }
-    fn diff_removed(&self) -> Color {
-        Color::Reset
-    }
-    fn diff_context(&self) -> Color {
-        Color::Reset
-    }
-    fn border(&self) -> Color {
-        Color::Reset
-    }
-    fn surface(&self) -> Color {
-        Color::Reset
-    }
-}
+/// Respects <https://no-color.org/>. Used automatically when the
+/// `NO_COLOR` environment variable is set.
+pub const NO_COLOR: ThemeData = ThemeData {
+    name: "No Color",
+    id: "no-color",
+    accent: Color::Reset,
+    accent_dim: Color::Reset,
+    text: Color::Reset,
+    text_dim: Color::Reset,
+    text_bright: Color::Reset,
+    success: Color::Reset,
+    error: Color::Reset,
+    warning: Color::Reset,
+    info: Color::Reset,
+    diff_added: Color::Reset,
+    diff_removed: Color::Reset,
+    diff_context: Color::Reset,
+    border: Color::Reset,
+    surface: Color::Reset,
+};
