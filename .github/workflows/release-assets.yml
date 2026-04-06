@@ -49,7 +49,9 @@ jobs:
           sudo apt-get install -y -qq ffmpeg
           go install github.com/charmbracelet/vhs@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-          vhs --version
+
+      - name: Verify VHS
+        run: vhs --version
 
       - name: Generate screenshots + GIF
         env:
