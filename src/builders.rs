@@ -210,3 +210,232 @@ impl ThemedBar {
         ])
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+    use crate::{CatppuccinMocha, Dracula, NoColor, Theme};
+
+    // ── fg_* builders produce correct colors ────────────────────
+
+    #[test]
+    fn fg_accent_uses_theme_accent() {
+        let t = CatppuccinMocha;
+        let span = t.fg_accent("hello").build();
+        assert_eq!(span.style.fg, Some(t.accent()));
+    }
+
+    #[test]
+    fn fg_dim_uses_theme_text_dim() {
+        let t = CatppuccinMocha;
+        let span = t.fg_dim("muted").build();
+        assert_eq!(span.style.fg, Some(t.text_dim()));
+    }
+
+    #[test]
+    fn fg_bright_uses_theme_text_bright() {
+        let t = CatppuccinMocha;
+        let span = t.fg_bright("bold").build();
+        assert_eq!(span.style.fg, Some(t.text_bright()));
+    }
+
+    #[test]
+    fn fg_text_uses_theme_text() {
+        let t = CatppuccinMocha;
+        let span = t.fg_text("normal").build();
+        assert_eq!(span.style.fg, Some(t.text()));
+    }
+
+    #[test]
+    fn fg_success_uses_theme_success() {
+        let t = CatppuccinMocha;
+        let span = t.fg_success("ok").build();
+        assert_eq!(span.style.fg, Some(t.success()));
+    }
+
+    #[test]
+    fn fg_error_uses_theme_error() {
+        let t = CatppuccinMocha;
+        let span = t.fg_error("fail").build();
+        assert_eq!(span.style.fg, Some(t.error()));
+    }
+
+    #[test]
+    fn fg_warning_uses_theme_warning() {
+        let t = CatppuccinMocha;
+        let span = t.fg_warning("warn").build();
+        assert_eq!(span.style.fg, Some(t.warning()));
+    }
+
+    #[test]
+    fn fg_info_uses_theme_info() {
+        let t = CatppuccinMocha;
+        let span = t.fg_info("info").build();
+        assert_eq!(span.style.fg, Some(t.info()));
+    }
+
+    #[test]
+    fn fg_added_uses_theme_diff_added() {
+        let t = CatppuccinMocha;
+        let span = t.fg_added("+line").build();
+        assert_eq!(span.style.fg, Some(t.diff_added()));
+    }
+
+    #[test]
+    fn fg_removed_uses_theme_diff_removed() {
+        let t = CatppuccinMocha;
+        let span = t.fg_removed("-line").build();
+        assert_eq!(span.style.fg, Some(t.diff_removed()));
+    }
+
+    #[test]
+    fn fg_border_uses_theme_border() {
+        let t = CatppuccinMocha;
+        let span = t.fg_border("---").build();
+        assert_eq!(span.style.fg, Some(t.border()));
+    }
+
+    // ── Modifier chaining ───────────────────────────────────────
+
+    #[test]
+    fn bold_adds_bold_modifier() {
+        let t = CatppuccinMocha;
+        let span = t.fg_accent("title").bold().build();
+        assert!(span.style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    #[test]
+    fn italic_adds_italic_modifier() {
+        let t = CatppuccinMocha;
+        let span = t.fg_dim("hint").italic().build();
+        assert!(span.style.add_modifier.contains(Modifier::ITALIC));
+    }
+
+    #[test]
+    fn dimmed_adds_dim_modifier() {
+        let t = CatppuccinMocha;
+        let span = t.fg_text("faded").dimmed().build();
+        assert!(span.style.add_modifier.contains(Modifier::DIM));
+    }
+
+    #[test]
+    fn chained_modifiers_combine() {
+        let t = CatppuccinMocha;
+        let span = t.fg_accent("both").bold().italic().build();
+        assert!(span.style.add_modifier.contains(Modifier::BOLD));
+        assert!(span.style.add_modifier.contains(Modifier::ITALIC));
+    }
+
+    #[test]
+    fn on_sets_background() {
+        let t = CatppuccinMocha;
+        let span = t.fg_accent("badge").on(Color::Red).build();
+        assert_eq!(span.style.bg, Some(Color::Red));
+    }
+
+    // ── Into<Span> conversion ───────────────────────────────────
+
+    #[test]
+    fn themed_span_converts_to_span() {
+        let t = CatppuccinMocha;
+        let themed = t.fg_success("ok").bold();
+        let span: Span<'_> = themed.into();
+        assert_eq!(span.style.fg, Some(t.success()));
+        assert!(span.style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    // ── Badge builder ───────────────────────────────────────────
+
+    #[test]
+    fn badge_has_background_and_bold() {
+        let t = CatppuccinMocha;
+        let span = t.badge(" RUNNING ", Color::Green).build();
+        assert_eq!(span.style.bg, Some(Color::Green));
+        assert!(span.style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    // ── Bar builder ─────────────────────────────────────────────
+
+    #[test]
+    fn bar_at_zero_is_all_empty() {
+        let t = CatppuccinMocha;
+        let line = t.bar(0).build();
+        let text: String = line.spans.iter().map(|s| s.content.to_string()).collect();
+        assert!(text.starts_with("▱"));
+        assert!(text.contains("0%"));
+    }
+
+    #[test]
+    fn bar_at_100_is_all_filled() {
+        let t = CatppuccinMocha;
+        let line = t.bar(100).build();
+        let text: String = line.spans.iter().map(|s| s.content.to_string()).collect();
+        assert!(text.starts_with("▰"));
+        assert!(text.contains("100%"));
+    }
+
+    #[test]
+    fn bar_at_50_is_half() {
+        let t = CatppuccinMocha;
+        let line = t.bar(50).width(10).build();
+        let filled: String = line.spans[0].content.to_string();
+        let empty: String = line.spans[1].content.to_string();
+        assert_eq!(filled.chars().count(), 5);
+        assert_eq!(empty.chars().count(), 5);
+    }
+
+    #[test]
+    fn bar_clamps_above_100() {
+        let t = CatppuccinMocha;
+        let line = t.bar(200).build();
+        let text: String = line.spans.iter().map(|s| s.content.to_string()).collect();
+        assert!(text.contains("100%"));
+    }
+
+    #[test]
+    fn bar_width_changes_length() {
+        let t = CatppuccinMocha;
+        let line = t.bar(50).width(20).build();
+        let filled: String = line.spans[0].content.to_string();
+        assert_eq!(filled.chars().count(), 10);
+    }
+
+    // ── Separator ───────────────────────────────────────────────
+
+    #[test]
+    fn separator_line_produces_content() {
+        let t = CatppuccinMocha;
+        let line = t.separator_line(30);
+        let text: String = line.spans.iter().map(|s| s.content.to_string()).collect();
+        assert!(text.contains("·"), "separator should contain dots");
+    }
+
+    // ── Works with dyn Theme ────────────────────────────────────
+
+    #[test]
+    fn builders_work_on_dyn_theme() {
+        let t: &dyn Theme = &Dracula;
+        let span = t.fg_accent("test").bold().build();
+        assert_eq!(span.style.fg, Some(t.accent()));
+    }
+
+    // ── NoColor produces Reset ──────────────────────────────────
+
+    #[test]
+    fn no_color_builders_produce_reset() {
+        let t = NoColor;
+        let span = t.fg_accent("text").build();
+        assert_eq!(span.style.fg, Some(Color::Reset));
+    }
+
+    // ── Owned strings work ──────────────────────────────────────
+
+    #[test]
+    fn owned_string_accepted() {
+        let t = CatppuccinMocha;
+        let text = format!("dynamic {}", 42);
+        let span = t.fg_accent(text).build();
+        assert!(span.content.contains("42"));
+    }
+}

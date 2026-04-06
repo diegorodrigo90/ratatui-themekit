@@ -1,10 +1,8 @@
 pre-commit:
-  parallel: true
   commands:
-    fmt:
-      run: cargo fmt --check
-    clippy:
-      run: cargo clippy --all-targets -- -D warnings
+    validate:
+      interactive: true
+      run: cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --all-targets
 
 commit-msg:
   commands:
@@ -15,3 +13,9 @@ commit-msg:
           echo "Commit message must follow conventional format: type(scope): description"
           exit 1
         fi
+
+pre-push:
+  commands:
+    validate:
+      interactive: true
+      run: ./scripts/validate.sh --mode hook
