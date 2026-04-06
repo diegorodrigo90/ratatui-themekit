@@ -421,8 +421,9 @@ fn render_table(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
 }
 
 fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
-    let block = t.block(" List ").build();
+    let block = t.block(" List + Scrollbar ").build();
     let ls = t.list_styles();
+    let sbs = t.scrollbar_styles();
 
     let items = vec![
         ListItem::new(
@@ -430,6 +431,13 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
                 .success("\u{2713}")
                 .dim(" ")
                 .text("Build succeeded")
+                .build(),
+        ),
+        ListItem::new(
+            t.line()
+                .success("\u{2713}")
+                .dim(" ")
+                .text("Lint passed")
                 .build(),
         ),
         ListItem::new(
@@ -453,15 +461,45 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
                 .text("Coverage: 87%")
                 .build(),
         ),
+        ListItem::new(
+            t.line()
+                .success("\u{2713}")
+                .dim(" ")
+                .text("Format check passed")
+                .build(),
+        ),
+        ListItem::new(
+            t.line()
+                .success("\u{2713}")
+                .dim(" ")
+                .text("Security audit clean")
+                .build(),
+        ),
+        ListItem::new(
+            t.line()
+                .warning("\u{26a0}")
+                .dim(" ")
+                .text("Unused dependency found")
+                .build(),
+        ),
     ];
+
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
 
     let list = List::new(items)
         .highlight_style(ls.highlight)
         .highlight_symbol(ls.symbol)
-        .style(ls.base)
-        .block(block);
+        .style(ls.base);
+    frame.render_widget(list, inner);
 
-    frame.render_widget(list, area);
+    // Scrollbar on the right edge
+    let scrollbar =
+        ratatui::widgets::Scrollbar::new(ratatui::widgets::ScrollbarOrientation::VerticalRight)
+            .track_style(sbs.track)
+            .thumb_style(sbs.thumb);
+    let mut scroll_state = ratatui::widgets::ScrollbarState::new(8).position(2);
+    frame.render_stateful_widget(scrollbar, inner, &mut scroll_state);
 }
 
 fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
