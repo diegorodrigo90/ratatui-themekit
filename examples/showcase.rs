@@ -22,6 +22,8 @@ struct AnimState {
     active_tab: usize,
     list_selected: usize,
     list_len: usize,
+    /// Stored area of the list widget for mouse hit-testing.
+    list_area: Rect,
 }
 
 impl AnimState {
@@ -34,6 +36,7 @@ impl AnimState {
             active_tab: 0,
             list_selected: 0,
             list_len: 8,
+            list_area: Rect::default(),
         }
     }
 
@@ -97,7 +100,7 @@ fn main() {
 
     loop {
         terminal
-            .draw(|frame| render_showcase(frame, &state))
+            .draw(|frame| render_showcase(frame, &mut state))
             .expect("render failed");
 
         state.tick();
@@ -118,16 +121,23 @@ fn main() {
                     }
                     _ => {}
                 },
-                Ok(Event::Mouse(mouse)) => match mouse.kind {
-                    MouseEventKind::ScrollUp => {
-                        state.list_selected = state.list_selected.saturating_sub(1);
+                Ok(Event::Mouse(mouse)) => {
+                    let in_list = state
+                        .list_area
+                        .contains(ratatui::layout::Position::new(mouse.column, mouse.row));
+                    if in_list {
+                        match mouse.kind {
+                            MouseEventKind::ScrollUp => {
+                                state.list_selected = state.list_selected.saturating_sub(1);
+                            }
+                            MouseEventKind::ScrollDown => {
+                                state.list_selected =
+                                    (state.list_selected + 1).min(state.list_len.saturating_sub(1));
+                            }
+                            _ => {}
+                        }
                     }
-                    MouseEventKind::ScrollDown => {
-                        state.list_selected =
-                            (state.list_selected + 1).min(state.list_len.saturating_sub(1));
-                    }
-                    _ => {}
-                },
+                }
                 _ => {}
             }
         }
@@ -141,7 +151,7 @@ fn main() {
     ratatui::restore();
 }
 
-fn render_showcase(frame: &mut Frame<'_>, state: &AnimState) {
+fn render_showcase(frame: &mut Frame<'_>, state: &mut AnimState) {
     let t = state.theme();
     let area = frame.area();
 
@@ -174,7 +184,7 @@ fn render_header(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(paragraph, area);
 }
 
-fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
+fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut AnimState) {
     let columns = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
@@ -447,7 +457,7 @@ fn render_table(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(table, area);
 }
 
-fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
+fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut AnimState) {
     let block = t.block(" List + Scrollbar ").build();
     let ls = t.list_styles();
     let sbs = t.scrollbar_styles();
@@ -515,6 +525,7 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
     let scroll_pos = state.list_selected.min(total.saturating_sub(1));
 
     let inner = block.inner(area);
+    state.list_area = inner;
     frame.render_widget(block, area);
 
     let list = List::new(items)
