@@ -99,6 +99,53 @@ pub trait ThemeExt: Theme {
     fn badge<'a>(&self, text: impl Into<std::borrow::Cow<'a, str>>, bg: Color) -> ThemedSpan<'a> {
         ThemedSpan::new(text, self.surface()).on(bg).bold()
     }
+
+    // ── Style helpers (for widget APIs that take Style, not Span) ──
+
+    /// Style with accent foreground. Use for `border_style`, `title_style`, etc.
+    fn style_accent(&self) -> Style {
+        Style::default().fg(self.accent())
+    }
+    /// Style with border foreground.
+    fn style_border(&self) -> Style {
+        Style::default().fg(self.border())
+    }
+    /// Style with error foreground.
+    fn style_error(&self) -> Style {
+        Style::default().fg(self.error())
+    }
+    /// Style with warning foreground.
+    fn style_warning(&self) -> Style {
+        Style::default().fg(self.warning())
+    }
+    /// Style with success foreground.
+    fn style_success(&self) -> Style {
+        Style::default().fg(self.success())
+    }
+    /// Style with bright text foreground.
+    fn style_bright(&self) -> Style {
+        Style::default().fg(self.text_bright())
+    }
+    /// Style with dim text foreground.
+    fn style_dim(&self) -> Style {
+        Style::default().fg(self.text_dim())
+    }
+}
+
+/// Creates a `Style` with the given foreground color.
+///
+/// Convenience function for widget APIs (`border_style`, `title_style`)
+/// that accept `Style` instead of `Span`.
+///
+/// ```rust
+/// use ratatui::style::Color;
+/// use ratatui_themekit::builders::style_fg;
+///
+/// let s = style_fg(Color::Green);
+/// ```
+#[must_use]
+pub fn style_fg(color: Color) -> Style {
+    Style::default().fg(color)
 }
 
 // Blanket impl — every Theme gets ThemeExt
