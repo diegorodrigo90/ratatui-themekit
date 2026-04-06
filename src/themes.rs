@@ -1,7 +1,7 @@
 //! Built-in theme implementations.
 //!
 //! Each theme is a `ThemeData` const — pure data, no code repetition.
-//! `ThemeData` implements `Theme` once; adding a new theme is one const.
+//! Adding a new theme: add a const + register in [`BUILTIN_THEMES`].
 
 use ratatui::style::Color;
 
@@ -10,7 +10,7 @@ use crate::Theme;
 /// A theme defined as pure data. Implements `Theme` automatically.
 ///
 /// All built-in themes are `ThemeData` constants. Custom themes use
-/// the same struct via `CustomTheme` (with serde support).
+/// [`CustomTheme`](crate::CustomTheme) (with serde + owned strings).
 #[derive(Debug, Clone)]
 pub struct ThemeData {
     /// Human-readable display name.
@@ -98,7 +98,26 @@ impl Theme for ThemeData {
     }
 }
 
-// ── Built-in themes (pure data) ────────────────────────────────
+// ── Registry ───────────────────────────────────────────────────
+//
+// Single source of truth. `resolve_theme`, `builtin_themes`, and
+// `available_theme_ids` all derive from this array.
+
+/// All built-in themes in display order. `NoColor` excluded (special).
+pub static BUILTIN_THEMES: &[ThemeData] = &[
+    CATPPUCCIN_MOCHA,
+    DRACULA,
+    NORD,
+    GRUVBOX_DARK,
+    ONE_DARK,
+    SOLARIZED_DARK,
+    TAILWIND_DARK,
+    TOKYO_NIGHT,
+    ROSE_PINE,
+    TERMINAL_NATIVE,
+];
+
+// ── Theme definitions ──────────────────────────────────────────
 
 /// Catppuccin Mocha — warm dark theme with pastel colors.
 pub const CATPPUCCIN_MOCHA: ThemeData = ThemeData {
@@ -240,9 +259,7 @@ pub const TAILWIND_DARK: ThemeData = ThemeData {
     surface: Color::Rgb(30, 41, 59),
 };
 
-/// Tokyo Night — dark theme with vivid blue accents.
-///
-/// Based on the popular VS Code / Neovim theme by enkia.
+/// Tokyo Night — dark theme with vivid blue accents (by enkia).
 pub const TOKYO_NIGHT: ThemeData = ThemeData {
     name: "Tokyo Night",
     id: "tokyo-night",
@@ -262,9 +279,7 @@ pub const TOKYO_NIGHT: ThemeData = ThemeData {
     surface: Color::Rgb(32, 35, 48),
 };
 
-/// Rosé Pine — dark theme with muted, elegant rose tones.
-///
-/// Based on the Rosé Pine palette by mvllow.
+/// Rosé Pine — dark theme with muted, elegant rose tones (by mvllow).
 pub const ROSE_PINE: ThemeData = ThemeData {
     name: "Rosé Pine",
     id: "rose-pine",
@@ -284,12 +299,7 @@ pub const ROSE_PINE: ThemeData = ThemeData {
     surface: Color::Rgb(64, 61, 82),
 };
 
-// ── Special themes ─────────────────────────────────────────────
-
-/// Terminal Native — uses named ANSI colors only.
-///
-/// Works on any terminal without truecolor support. Colors adapt
-/// to the user's terminal color scheme automatically.
+/// Terminal Native — uses named ANSI colors only (no truecolor needed).
 pub const TERMINAL_NATIVE: ThemeData = ThemeData {
     name: "Terminal Native",
     id: "terminal",
@@ -309,10 +319,7 @@ pub const TERMINAL_NATIVE: ThemeData = ThemeData {
     surface: Color::Black,
 };
 
-/// `NO_COLOR` compliant theme — all colors are `Color::Reset`.
-///
-/// Respects <https://no-color.org/>. Used automatically when the
-/// `NO_COLOR` environment variable is set.
+/// `NO_COLOR` compliant — all `Color::Reset`. Respects <https://no-color.org/>.
 pub const NO_COLOR: ThemeData = ThemeData {
     name: "No Color",
     id: "no-color",
