@@ -21,6 +21,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Fix release-plz — pass token to checkout, use latest action
 - Fix release-plz action SHA — use release-plz/action main
 - Add release-assets workflow for doc updates on release PRs
+# Changelog
+
+
+### Added
+
+- Add InputStyles, ScrollbarStyles, NotificationStyles bundles
 
 ## [0.1.0] - 2026-04-05
 
