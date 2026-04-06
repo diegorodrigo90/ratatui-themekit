@@ -228,6 +228,24 @@ pub trait ThemeExt: Theme {
     fn style_surface(&self) -> Style {
         Style::default().bg(self.surface())
     }
+    /// Base style for the full terminal canvas — background + default text.
+    ///
+    /// Render a `Block` with this style on `frame.area()` as the **first**
+    /// widget every frame. All subsequent widgets inherit the background
+    /// automatically (ratatui's style system is patch-based).
+    ///
+    /// ```ignore
+    /// frame.render_widget(
+    ///     ratatui::widgets::Block::default().style(theme.style_base()),
+    ///     frame.area(),
+    /// );
+    /// ```
+    ///
+    /// Plugins can still override the background on individual widgets
+    /// by setting their own `.bg(color)` — the canvas is just the default.
+    fn style_base(&self) -> Style {
+        Style::default().bg(self.background()).fg(self.text())
+    }
 }
 
 // Blanket impl — every Theme gets ThemeExt

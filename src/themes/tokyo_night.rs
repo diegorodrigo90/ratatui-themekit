@@ -22,4 +22,5 @@ pub const TOKYO_NIGHT: ThemeData = ThemeData {
     diff_context: Color::Rgb(120, 124, 153),
     border: Color::Rgb(41, 53, 90),
     surface: Color::Rgb(32, 35, 48),
+    background: Color::Rgb(26, 27, 38), // #1a1b26 — Tokyo Night bg
 };

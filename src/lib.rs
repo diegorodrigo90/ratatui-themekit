@@ -177,6 +177,7 @@ mod tests {
             diff_context: Color::DarkGray,
             border: Color::DarkGray,
             surface: Color::Black,
+            background: Color::Reset,
         };
         let theme: &dyn Theme = &t;
         assert_eq!(theme.accent(), Color::Magenta);
@@ -184,8 +185,38 @@ mod tests {
     }
 
     #[test]
-    fn background_defaults_to_reset() {
-        assert_eq!(CatppuccinMocha.background(), Color::Reset);
-        assert_eq!(Dracula.background(), Color::Reset);
+    fn background_has_real_color() {
+        assert_eq!(CatppuccinMocha.background(), Color::Rgb(30, 30, 46));
+        assert_eq!(Dracula.background(), Color::Rgb(40, 42, 54));
+        // TerminalNative and NoColor keep Reset (respect terminal default)
+        assert_eq!(TerminalNative.background(), Color::Reset);
+        assert_eq!(NoColor.background(), Color::Reset);
+    }
+
+    #[test]
+    fn style_base_combines_bg_and_fg() {
+        use ratatui::style::Style;
+        let t = CatppuccinMocha;
+        let base = t.style_base();
+        assert_eq!(base.bg, Some(Color::Rgb(30, 30, 46)));
+        assert_eq!(base.fg, Some(t.text()));
+    }
+
+    #[test]
+    fn stripe_blends_background_and_surface() {
+        // Catppuccin: bg=(30,30,46), surface=(49,50,68) → 70% blend → (43,44,61)
+        let t = CatppuccinMocha;
+        let stripe = t.stripe();
+        assert_ne!(stripe, t.background(), "stripe must differ from background");
+        assert_ne!(stripe, t.surface(), "stripe must differ from surface");
+        assert_eq!(stripe, Color::Rgb(43, 44, 61));
+    }
+
+    #[test]
+    fn stripe_falls_back_to_surface_for_reset_bg() {
+        // NoColor: bg=Reset → stripe=surface (Reset)
+        assert_eq!(NoColor.stripe(), NoColor.surface());
+        // TerminalNative: bg=Reset → stripe=surface (Black)
+        assert_eq!(TerminalNative.stripe(), TerminalNative.surface());
     }
 }

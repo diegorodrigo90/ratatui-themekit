@@ -22,4 +22,5 @@ pub const CATPPUCCIN_MOCHA: ThemeData = ThemeData {
     diff_context: Color::Rgb(127, 132, 156),
     border: Color::Rgb(69, 71, 90),
     surface: Color::Rgb(49, 50, 68),
+    background: Color::Rgb(30, 30, 46), // #1e1e2e — Mocha Base
 };

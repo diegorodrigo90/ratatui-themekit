@@ -2,6 +2,23 @@
 
 use ratatui::style::Color;
 
+/// Blends background toward surface at 70% for visible stripe contrast.
+/// Falls back to `surface` when background is `Color::Reset`.
+fn blend_bg_surface(bg: Color, surface: Color) -> Color {
+    match (bg, surface) {
+        (Color::Rgb(br, bg_g, bb), Color::Rgb(sr, sg, sb)) => {
+            // 70% from background toward surface — visible stripe contrast
+            let lerp = |a: u8, b: u8| -> u8 {
+                let a16 = i32::from(a);
+                let b16 = i32::from(b);
+                (a16 + (b16 - a16) * 7 / 10) as u8
+            };
+            Color::Rgb(lerp(br, sr), lerp(bg_g, sg), lerp(bb, sb))
+        }
+        _ => surface,
+    }
+}
+
 /// Semantic color contract for ratatui applications.
 ///
 /// Define **what** each color means, not what RGB value it is.
@@ -68,6 +85,15 @@ pub trait Theme: Send + Sync {
     /// apps that force a specific background (e.g., fullscreen dashboards).
     fn background(&self) -> Color {
         Color::Reset
+    }
+
+    /// Zebra stripe background — alternating row color for tables/lists.
+    ///
+    /// Defaults to a blend between `background` and `surface` (midpoint).
+    /// Override for precise control. Falls back to `surface` when
+    /// `background` is `Color::Reset` (no real background defined).
+    fn stripe(&self) -> Color {
+        blend_bg_surface(self.background(), self.surface())
     }
 
     /// Color for file-read operations.

@@ -77,6 +77,9 @@ pub struct CustomTheme {
     /// Surface/background highlight.
     #[cfg_attr(feature = "serde", serde(default = "default_black"))]
     pub surface: Color,
+    /// Application background color.
+    #[cfg_attr(feature = "serde", serde(default = "default_reset"))]
+    pub background: Color,
 }
 
 impl Theme for CustomTheme {
@@ -128,6 +131,9 @@ impl Theme for CustomTheme {
     fn surface(&self) -> Color {
         self.surface
     }
+    fn background(&self) -> Color {
+        self.background
+    }
 }
 
 impl std::fmt::Display for CustomTheme {
@@ -169,6 +175,10 @@ fn default_cyan() -> Color {
 fn default_black() -> Color {
     Color::Black
 }
+#[cfg(feature = "serde")]
+fn default_reset() -> Color {
+    Color::Reset
+}
 
 #[cfg(test)]
 mod tests {
@@ -193,6 +203,7 @@ mod tests {
             diff_context: Color::DarkGray,
             border: Color::DarkGray,
             surface: Color::Black,
+            background: Color::Reset,
         };
         let theme: &dyn Theme = &t;
         assert_eq!(theme.accent(), Color::Magenta);
@@ -218,6 +229,7 @@ mod tests {
             diff_context: Color::DarkGray,
             border: Color::DarkGray,
             surface: Color::Black,
+            background: Color::Reset,
         };
         assert_eq!(t.to_string(), "My Theme (my-theme)");
     }
@@ -241,6 +253,7 @@ mod tests {
             diff_context: Color::DarkGray,
             border: Color::DarkGray,
             surface: Color::Black,
+            background: Color::Reset,
         };
         let b = a.clone();
         assert_eq!(a, b);
@@ -292,6 +305,7 @@ accent = { Rgb = [249, 115, 22] }
             diff_context: Color::DarkGray,
             border: Color::DarkGray,
             surface: Color::Black,
+            background: Color::Reset,
         };
         let toml_str = toml::to_string(&theme).unwrap();
         let parsed: CustomTheme = toml::from_str(&toml_str).unwrap();

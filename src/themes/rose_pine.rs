@@ -22,4 +22,5 @@ pub const ROSE_PINE: ThemeData = ThemeData {
     diff_context: Color::Rgb(110, 106, 134),
     border: Color::Rgb(38, 35, 58),
     surface: Color::Rgb(64, 61, 82),
+    background: Color::Rgb(25, 23, 36), // #191724 — Rosé Pine base
 };

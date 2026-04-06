@@ -22,4 +22,5 @@ pub const GRUVBOX_DARK: ThemeData = ThemeData {
     diff_context: Color::Rgb(146, 131, 116),
     border: Color::Rgb(80, 73, 69),
     surface: Color::Rgb(60, 56, 54),
+    background: Color::Rgb(40, 40, 40), // #282828 — Gruvbox bg0
 };

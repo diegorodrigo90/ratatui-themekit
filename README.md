@@ -154,6 +154,17 @@ t.bar(75).width(20).build()   // ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰�
 t.separator_line(40)           // · · · · · · · · · · · ·
 ```
 
+### Full-Screen Canvas
+
+```rust
+// Paint themed background on the entire terminal — one line, all widgets inherit it.
+// Plugins/widgets can still override bg on their own elements.
+frame.render_widget(
+    Block::default().style(t.style_base()),  // bg + fg from theme
+    frame.area(),
+);
+```
+
 ### Style Helpers
 
 ```rust
@@ -161,6 +172,7 @@ t.separator_line(40)           // · · · · · · · · · · · ·
 t.style_accent()   t.style_border()   t.style_error()
 t.style_success()  t.style_warning()  t.style_info()
 t.style_bright()   t.style_dim()      t.style_surface()
+t.style_base()     // bg(background) + fg(text) — full-screen canvas
 ```
 
 ## 20 Semantic Color Slots
@@ -171,7 +183,7 @@ t.style_bright()   t.style_dim()      t.style_surface()
 | **Text** | `text`, `text_dim`, `text_bright` | Default, muted, emphasized text |
 | **Status** | `success`, `error`, `warning`, `info` | Semantic status indicators |
 | **Diff** | `diff_added`, `diff_removed`, `diff_context` | Code diff rendering |
-| **Structure** | `border`, `surface` | Panel borders, focused backgrounds |
+| **Structure** | `border`, `surface`, `background` | Borders, focus highlight, app background |
 | **Derived** | `block_*`, `indicator_*` | Auto-derived from core slots |
 
 ## 11 Built-in Themes
@@ -196,7 +208,8 @@ See all themes rendered: **[Theme Gallery](examples/README.md#theme-gallery)**
 
 ## Custom Themes
 
-Implement the `Theme` trait — 15 required methods, 10+ derived automatically:
+Implement the `Theme` trait — 15 required methods, 12+ derived automatically.
+Override `background()` to set a custom app background (defaults to `Color::Reset`):
 
 ```rust
 use ratatui::style::Color;
@@ -277,7 +290,7 @@ current = resolve_theme("dracula"); // instant
 
 - **Semantic over literal** — slots describe meaning, not appearance
 - **Builders over manual styling** — `t.fg_accent("x").bold()` not `Span::styled("x", Style::default().fg(...))`
-- **Derived defaults** — implement 15 methods, get 25+ color slots
+- **Derived defaults** — implement 15 methods, get 27+ color slots
 - **Zero opinion on layout** — only colors, never widget structure
 - **`NO_COLOR` native** — accessibility built in, not bolted on
 - **`Send + Sync`** — safe for async TUI architectures

@@ -21,5 +21,6 @@ pub const SOLARIZED_DARK: ThemeData = ThemeData {
     diff_removed: Color::Rgb(220, 50, 47),
     diff_context: Color::Rgb(88, 110, 117),
     border: Color::Rgb(7, 54, 66),
-    surface: Color::Rgb(0, 43, 54),
+    surface: Color::Rgb(7, 54, 66),    // #073642 — Solarized base02 (highlight)
+    background: Color::Rgb(0, 43, 54), // #002b36 — Solarized base03 (background)
 };

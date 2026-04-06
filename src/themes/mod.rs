@@ -94,6 +94,12 @@ pub struct ThemeData {
     pub border: Color,
     /// Background highlight (selected/focused).
     pub surface: Color,
+    /// Application background.
+    ///
+    /// `Color::Reset` means "use terminal default" (recommended for
+    /// `TerminalNative` and `NoColor`). Palette themes should set the
+    /// real base color (e.g. Catppuccin Mocha `#1e1e2e`).
+    pub background: Color,
 }
 
 impl std::fmt::Display for ThemeData {
@@ -150,5 +156,8 @@ impl Theme for ThemeData {
     }
     fn surface(&self) -> Color {
         self.surface
+    }
+    fn background(&self) -> Color {
+        self.background
     }
 }

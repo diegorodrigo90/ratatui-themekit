@@ -21,7 +21,7 @@ cargo run --example showcase  # Run showcase example
 ```
 src/
 ├── lib.rs              ← re-exports + integration tests
-├── theme_trait.rs      ← Theme trait (15 required + 10 derived methods)
+├── theme_trait.rs      ← Theme trait (15 required + 12 derived methods)
 ├── resolve.rs          ← resolve_theme(), builtin_themes(), no_color_active()
 ├── builders/
 │   ├── mod.rs          ← ThemeExt trait + style helpers
@@ -42,7 +42,7 @@ src/
 ## Rules
 
 - ALL colors through Theme trait — zero hardcoded `Color::*`
-- Theme trait: 15 required + 10 derived methods
+- Theme trait: 15 required + 12 derived methods
 - ThemeExt: span, line, block, status_line, table/list/tab/gauge/state style bundles
 - `Send + Sync` required on implementations
 - `NO_COLOR` always respected

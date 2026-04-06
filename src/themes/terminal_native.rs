@@ -22,4 +22,5 @@ pub const TERMINAL_NATIVE: ThemeData = ThemeData {
     diff_context: Color::DarkGray,
     border: Color::DarkGray,
     surface: Color::Black,
+    background: Color::Reset, // Respect terminal's own background
 };

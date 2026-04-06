@@ -36,6 +36,8 @@ struct AnimState {
     input_buffer: String,
     input_cursor: usize,
     input_area: Rect,
+    /// Stored area of the tab header for mouse hit-testing.
+    tab_area: Rect,
 }
 
 impl AnimState {
@@ -53,6 +55,7 @@ impl AnimState {
             input_buffer: String::new(),
             input_cursor: 0,
             input_area: Rect::default(),
+            tab_area: Rect::default(),
         }
     }
 
@@ -74,14 +77,52 @@ impl AnimState {
             }
         }
 
-        // Tabs: cycle every 40 ticks (~2s)
-        if self.tick % 40 == 0 {
-            self.active_tab = (self.active_tab + 1) % 4;
+        // GIF mode: auto-animate when not interactive OR THEMEKIT_GIF=1
+        let gif_mode = std::env::var("THEMEKIT_GIF").is_ok_and(|v| v == "1")
+            || !std::io::IsTerminal::is_terminal(&std::io::stdin());
+        if gif_mode {
+            // Tabs: cycle every ~2s
+            if self.tick % 40 == 0 {
+                self.active_tab = (self.active_tab + 1) % 4;
+            }
+            // List: auto-scroll
+            if self.tick % 20 == 0 {
+                self.list_selected = (self.list_selected + 1) % self.list_len;
+            }
+            // Theme: cycle every ~3s
+            if self.tick % 60 == 0 && self.tick > 0 {
+                self.theme_index = (self.theme_index + 1) % BUILTIN_THEMES.len();
+            }
+            // Input: auto-type
+            self.auto_type_input();
         }
+    }
 
-        // List: auto-scroll only when not interactive (GIF recording via VHS)
-        if !std::io::IsTerminal::is_terminal(&std::io::stdin()) && self.tick % 20 == 0 {
-            self.list_selected = (self.list_selected + 1) % self.list_len;
+    /// Simulates typing in GIF mode — types a demo message, pauses, clears, repeats.
+    fn auto_type_input(&mut self) {
+        const DEMO_TEXT: &str = "Hello themekit!\nMultiline too";
+        let text_len = DEMO_TEXT.len() as u64;
+        let type_interval: u64 = 6; // ticks between chars (~300ms)
+        let pause_ticks: u64 = 80; // pause after full text (~4s)
+        let total_cycle = text_len * type_interval + pause_ticks;
+
+        let cycle_pos = self.tick % total_cycle;
+        let char_index = cycle_pos / type_interval;
+
+        if char_index < text_len {
+            // Typing phase
+            self.input_focused = true;
+            self.input_buffer = DEMO_TEXT[..char_index as usize + 1].to_owned();
+            self.input_cursor = self.input_buffer.len();
+        } else {
+            // Pause phase — show full text, then clear at end
+            let pause_elapsed = cycle_pos - text_len * type_interval;
+            if pause_elapsed > pause_ticks - 10 {
+                // Last 10 ticks: clear
+                self.input_buffer.clear();
+                self.input_cursor = 0;
+                self.input_focused = false;
+            }
         }
     }
 
@@ -125,11 +166,15 @@ fn main() {
         if event::poll(std::time::Duration::from_millis(50)).unwrap_or(false) {
             match event::read() {
                 Ok(Event::Key(key)) if key.kind == KeyEventKind::Press => {
+                    // q always quits, Esc quits when not in input
+                    if key.code == KeyCode::Char('q') {
+                        break;
+                    }
                     if state.input_focused {
                         handle_input_key(&mut state, key.code, key.modifiers);
                     } else {
                         match key.code {
-                            KeyCode::Char('q') | KeyCode::Esc => break,
+                            KeyCode::Esc => break,
                             KeyCode::Up | KeyCode::Char('k') => {
                                 state.theme_index = if state.theme_index == 0 {
                                     BUILTIN_THEMES.len() - 1
@@ -149,6 +194,21 @@ fn main() {
 
                     match mouse.kind {
                         MouseEventKind::Down(_) => {
+                            if state.tab_area.contains(pos) {
+                                // Click on tab header — calculate which tab by x position
+                                let tab_names = ["Overview", "Logs", "Config", "Metrics"];
+                                let mut x_offset = state.tab_area.x;
+                                for (i, name) in tab_names.iter().enumerate() {
+                                    let is_last = i == tab_names.len() - 1;
+                                    let tab_width =
+                                        name.len() as u16 + if is_last { 0 } else { 3 };
+                                    if pos.x >= x_offset && pos.x < x_offset + tab_width {
+                                        state.active_tab = i;
+                                        break;
+                                    }
+                                    x_offset += tab_width;
+                                }
+                            }
                             state.input_focused = state.input_area.contains(pos);
                         }
                         MouseEventKind::ScrollUp if state.list_area.contains(pos) => {
@@ -256,6 +316,12 @@ fn render_showcase(frame: &mut Frame<'_>, state: &mut AnimState) {
     let t = state.theme();
     let area = frame.area();
 
+    // ← themekit: full-screen canvas with themed background + default text
+    frame.render_widget(
+        ratatui::widgets::Block::default().style(t.style_base()),
+        area,
+    );
+
     let main_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -315,7 +381,7 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
         .constraints([
             Constraint::Length(9),
             Constraint::Length(7),
-            Constraint::Length(3),
+            Constraint::Length(7),
             Constraint::Length(3),
             Constraint::Length(3),
             Constraint::Length(5),
@@ -727,18 +793,44 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut Ani
 }
 
 /// `t.tab_styles()` — active/inactive tab styling. ← themekit
-fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
+fn render_tabs(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &mut AnimState) {
     let block = t.block(" Tabs ").build();
-    let ts = t.tab_styles();
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
 
+    let tab_rows =
+        Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).split(inner);
+
+    // Tab header — store area for mouse click hit-testing
+    state.tab_area = tab_rows[0];
+    let ts = t.tab_styles();
     let tabs = Tabs::new(["Overview", "Logs", "Config", "Metrics"])
         .style(ts.inactive)
         .highlight_style(ts.active)
         .select(state.active_tab)
-        .divider(" | ")
-        .block(block);
+        .divider(" | ");
+    frame.render_widget(tabs, tab_rows[0]);
 
-    frame.render_widget(tabs, area);
+    // Tab content — changes per active tab
+    let content: Vec<Line<'_>> = match state.active_tab {
+        0 => vec![
+            t.line().success("  ● ").text("All systems operational").build(),
+            t.line().dim("  Uptime: 99.97%").build(),
+        ],
+        1 => vec![
+            t.line().dim("  [14:32] ").text("Build completed").build(),
+            t.line().dim("  [14:33] ").warning("Slow query: 340ms").build(),
+        ],
+        2 => vec![
+            t.line().accent("  theme: ").text(t.name()).build(),
+            t.line().accent("  locale: ").text("en").build(),
+        ],
+        _ => vec![
+            t.line().text("  Requests: ").accent_bold("1.2k/s").build(),
+            t.line().text("  Latency:  ").success("12ms p95").build(),
+        ],
+    };
+    frame.render_widget(Paragraph::new(content), tab_rows[1]);
 }
 
 /// `t.bar(percent).width(n).build()` — themed progress bar. ← themekit

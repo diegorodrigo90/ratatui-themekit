@@ -96,53 +96,17 @@ Set Padding 20
 Set Framerate 15
 Set PlaybackSpeed 1.2
 
+Env THEMEKIT_GIF "1"
+
 Hide
 Type "$BIN"
 Enter
 Sleep 2s
 Show
 
-Sleep 2s
-
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-Down
-Sleep 1.2s
-
-Sleep 1.5s
-
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 0.8s
-Up
-Sleep 2s
+# Everything auto-animates: theme cycling, input typing, list scroll
+# Record ~25s to capture 8+ theme transitions + multiple type cycles
+Sleep 25s
 
 Hide
 Type "q"
@@ -157,6 +121,7 @@ TAPE
 
 MODE="${1:-all}"
 SINGLE="${2:-}"
+MAX_JOBS="${MAX_JOBS:-$(nproc 2>/dev/null || echo 4)}"
 
 case "$MODE" in
     png)
@@ -170,19 +135,26 @@ case "$MODE" in
                 fi
             done
         else
+            echo "Generating ${#THEMES[@]} PNGs in parallel (max $MAX_JOBS jobs)..."
             for entry in "${THEMES[@]}"; do
-                generate_png "${entry%%:*}" "${entry##*:}"
+                generate_png "${entry%%:*}" "${entry##*:}" &
+                # Limit concurrent jobs
+                while [ "$(jobs -rp | wc -l)" -ge "$MAX_JOBS" ]; do sleep 0.1; done
             done
+            wait
         fi
         ;;
     gif)
         generate_gif
         ;;
     all)
+        echo "Generating ${#THEMES[@]} PNGs + GIF in parallel (max $MAX_JOBS jobs)..."
         for entry in "${THEMES[@]}"; do
-            generate_png "${entry%%:*}" "${entry##*:}"
+            generate_png "${entry%%:*}" "${entry##*:}" &
+            while [ "$(jobs -rp | wc -l)" -ge "$MAX_JOBS" ]; do sleep 0.1; done
         done
-        generate_gif
+        generate_gif &
+        wait
         ;;
     *)
         echo "Usage: $0 [png|gif|all] [theme_id]"

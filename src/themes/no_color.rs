@@ -22,4 +22,5 @@ pub const NO_COLOR: ThemeData = ThemeData {
     diff_context: Color::Reset,
     border: Color::Reset,
     surface: Color::Reset,
+    background: Color::Reset, // No color override
 };

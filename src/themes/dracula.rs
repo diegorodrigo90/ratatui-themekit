@@ -22,4 +22,5 @@ pub const DRACULA: ThemeData = ThemeData {
     diff_context: Color::Rgb(98, 114, 164),
     border: Color::Rgb(68, 71, 90),
     surface: Color::Rgb(55, 59, 81),
+    background: Color::Rgb(40, 42, 54), // #282a36 — Dracula Background
 };

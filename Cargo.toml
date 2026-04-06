@@ -1,10 +1,10 @@
 [package]
 name = "ratatui-themekit"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 rust-version = "1.86.0"
 license = "MIT"
-description = "Semantic theme system for ratatui — 11 themes, widget builders (Block, Line, Table, List, Tabs, StatusLine, Gauge), state-aware styles, NO_COLOR"
+description = "Semantic theme system for ratatui — 11 themes, widget builders, full-screen canvas, zebra rows, state-aware styles, NO_COLOR"
 repository = "https://github.com/diegorodrigo90/ratatui-themekit"
 homepage = "https://github.com/diegorodrigo90/ratatui-themekit"
 documentation = "https://docs.rs/ratatui-themekit"

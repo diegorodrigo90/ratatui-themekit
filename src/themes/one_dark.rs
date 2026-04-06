@@ -22,4 +22,5 @@ pub const ONE_DARK: ThemeData = ThemeData {
     diff_context: Color::Rgb(92, 99, 112),
     border: Color::Rgb(62, 68, 81),
     surface: Color::Rgb(44, 49, 58),
+    background: Color::Rgb(33, 37, 43), // #21252b — One Dark bg
 };

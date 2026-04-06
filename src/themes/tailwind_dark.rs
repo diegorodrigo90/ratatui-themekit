@@ -22,4 +22,5 @@ pub const TAILWIND_DARK: ThemeData = ThemeData {
     diff_context: Color::Rgb(148, 163, 184),
     border: Color::Rgb(51, 65, 85),
     surface: Color::Rgb(30, 41, 59),
+    background: Color::Rgb(15, 23, 42), // #0f172a — Tailwind slate-900
 };

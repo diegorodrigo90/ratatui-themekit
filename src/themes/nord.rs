@@ -22,4 +22,5 @@ pub const NORD: ThemeData = ThemeData {
     diff_context: Color::Rgb(76, 86, 106),
     border: Color::Rgb(59, 66, 82),
     surface: Color::Rgb(46, 52, 64),
+    background: Color::Rgb(36, 40, 50), // #2e3440 — Nord Polar Night
 };

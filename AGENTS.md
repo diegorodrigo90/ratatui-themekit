@@ -29,7 +29,7 @@ cargo deny check             # License + advisory + source check
 ```
 src/
 ├── lib.rs              ← re-exports + integration tests
-├── theme_trait.rs      ← Theme trait (15 required + 10 derived)
+├── theme_trait.rs      ← Theme trait (15 required + 12 derived)
 ├── resolve.rs          ← resolve_theme(), builtin_themes(), no_color_active()
 ├── builders/
 │   ├── mod.rs          ← ThemeExt trait + style_* helpers

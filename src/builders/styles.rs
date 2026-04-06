@@ -178,7 +178,7 @@ impl TableStyles {
                 .fg(theme.text_bright())
                 .bg(theme.surface())
                 .add_modifier(Modifier::BOLD),
-            stripe: Style::default().bg(theme.surface()),
+            stripe: Style::default().bg(theme.stripe()),
         }
     }
 }
@@ -330,7 +330,7 @@ mod tests {
     use ratatui::widgets::Row;
 
     use super::*;
-    use crate::{CatppuccinMocha, Dracula, NoColor};
+    use crate::{CatppuccinMocha, Dracula, NoColor, Theme};
 
     // ── TableStyles ─────────────────────────────────────────────
 
@@ -348,9 +348,11 @@ mod tests {
     }
 
     #[test]
-    fn table_stripe_has_surface_bg() {
+    fn table_stripe_uses_derived_stripe_color() {
         let ts = TableStyles::from_theme(&Dracula);
-        assert_eq!(ts.stripe.bg, Some(Dracula.surface));
+        assert_eq!(ts.stripe.bg, Some(Dracula.stripe()));
+        // stripe is a blend, not the same as surface
+        assert_ne!(ts.stripe.bg, Some(Dracula.surface));
     }
 
     // ── ListStyles ──────────────────────────────────────────────
