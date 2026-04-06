@@ -152,7 +152,6 @@ fn default_red() -> Color {
     Color::Red
 }
 #[cfg(feature = "serde")]
-#[cfg(feature = "serde")]
 fn default_yellow() -> Color {
     Color::Yellow
 }
