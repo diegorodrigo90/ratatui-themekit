@@ -195,7 +195,6 @@ mod tests {
 
     #[test]
     fn style_base_combines_bg_and_fg() {
-        use ratatui::style::Style;
         let t = CatppuccinMocha;
         let base = t.style_base();
         assert_eq!(base.bg, Some(Color::Rgb(30, 30, 46)));
