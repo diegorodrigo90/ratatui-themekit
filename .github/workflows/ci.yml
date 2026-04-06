@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,7 +15,7 @@ env:
 
 jobs:
   check:
-    name: Check
+    name: Check + Clippy + Test + Docs
     runs-on: ubuntu-latest
     steps:
       - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
@@ -24,7 +23,14 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
       - run: cargo check --all-targets
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+      - run: cargo test --all-targets
+      - run: cargo test --all-targets --features serde
+      - run: cargo doc --no-deps --all-features
 
   fmt:
     name: Format
@@ -38,52 +44,6 @@ jobs:
         with:
           components: rustfmt
       - run: cargo +nightly fmt --check
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
-        with:
-          egress-policy: audit
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - run: cargo clippy --all-targets -- -D warnings
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
-        with:
-          egress-policy: audit
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --all-targets
-
-  test-serde:
-    name: Test (serde feature)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
-        with:
-          egress-policy: audit
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --all-targets --features serde
-
-  doc:
-    name: Docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
-        with:
-          egress-policy: audit
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo doc --no-deps --all-features
 
   deny:
     name: Deny (licenses + bans + sources)
@@ -106,6 +66,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
       - run: cargo generate-lockfile
       - name: Audit (ignore upstream time crate advisory)
         run: |
