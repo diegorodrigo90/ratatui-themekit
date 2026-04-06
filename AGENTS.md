@@ -63,14 +63,24 @@ src/
 - **Trait-based extensibility**: any app can implement custom themes
 - **`NO_COLOR` native**: accessibility built in, not bolted on
 
-## Showcase & Screenshots
+## Showcase, Screenshots & Docs (GOLDEN RULE — NEVER skip)
 
+**EVERY commit that changes builders, themes, style bundles, or ThemeExt MUST update:**
+
+1. **`examples/showcase.rs`** — add demo section for new feature (ALL builders must be visible)
+2. **PNGs + GIF** — `./scripts/generate-screenshots.sh` (requires `vhs`)
+3. **`README.md`** — update Builders section, theme table, examples
+4. **`examples/README.md`** — theme gallery with all PNGs
+5. **`CLAUDE.md` + `AGENTS.md`** — architecture section if file structure changed
+6. **`CONTRIBUTING.md`** — release checklist if process changed
+
+Commands:
 - `cargo run --example showcase` — interactive TUI demo with all builders
-- `./scripts/generate-screenshots.sh` — generates all PNGs + GIF (requires `vhs`)
-- Screenshots MUST be regenerated after: new themes, new builders, version bump
-- `showcase.rs` reads version and theme count dynamically from crate metadata
+- `./scripts/generate-screenshots.sh` — generates all PNGs + GIF
+- `showcase.rs` reads version and theme count dynamically via `env!("CARGO_PKG_VERSION")`
 - `assets/` is excluded from crate publish (Cargo.toml `exclude`)
-- GIF goes in README, PNGs in theme gallery docs
+
+**A feature without updated showcase + docs + screenshots is NOT done.**
 
 ## Code Standards
 

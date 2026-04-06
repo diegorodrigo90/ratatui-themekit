@@ -180,6 +180,7 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
             Constraint::Length(3),
             Constraint::Length(3),
             Constraint::Length(3),
+            Constraint::Length(5),
             Constraint::Min(0),
         ])
         .split(columns[1]);
@@ -189,7 +190,8 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
     render_tabs(frame, right[2], t, state);
     render_bar(frame, right[3], t, state);
     render_gauge(frame, right[4], t, state);
-    render_themes_list(frame, right[5], t, state.theme_index);
+    render_notifications(frame, right[5], t);
+    render_themes_list(frame, right[6], t, state.theme_index);
 }
 
 fn render_spans(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
@@ -238,9 +240,11 @@ fn render_spans(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
             t.fg_dim(" ").build(),
             t.fg_accent("italic").italic().build(),
             t.fg_dim(" ").build(),
-            t.fg_accent("dim").dimmed().build(),
-            t.fg_dim(" ").build(),
             t.fg_accent("underline").underlined().build(),
+            t.fg_dim(" ").build(),
+            t.fg_accent("strike").crossed_out().build(),
+            t.fg_dim(" ").build(),
+            t.fg_accent("reverse").reversed().build(),
             t.fg_dim(" \u{2014} modifiers").build(),
         ]),
         Line::from(vec![
@@ -356,12 +360,14 @@ fn render_input_demo(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &A
     let typing = state.progress > 30;
 
     let border = if typing { is.border_focused } else { is.border };
+    let bg = ratatui::style::Style::default().bg(t.surface());
     let block = ratatui::widgets::Block::new()
         .borders(ratatui::widgets::Borders::ALL)
         .border_type(ratatui::widgets::BorderType::Rounded)
         .border_style(border)
         .title(" Input ")
-        .title_style(is.prompt);
+        .title_style(is.prompt)
+        .style(bg);
 
     let content = if typing {
         t.line().accent_bold("> ").text("hello world").build()
@@ -489,6 +495,18 @@ fn render_gauge(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSt
         .label(format!("{}%", state.progress))
         .block(block);
     frame.render_widget(gauge, area);
+}
+
+fn render_notifications(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
+    let block = t.block(" Notifications ").build();
+    let ns = t.notification_styles();
+    let text = Text::from(vec![
+        Line::styled("  \u{2139} Build deployed successfully", ns.info),
+        Line::styled("  \u{2713} All 132 tests passed", ns.success),
+        Line::styled("  \u{26a0} Dependency update available", ns.warning),
+    ]);
+    let paragraph = Paragraph::new(text).block(block);
+    frame.render_widget(paragraph, area);
 }
 
 fn render_themes_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, selected: usize) {
