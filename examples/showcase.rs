@@ -186,7 +186,7 @@ fn render_body(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimSta
         .split(columns[1]);
 
     render_table(frame, right[0], t);
-    render_list(frame, right[1], t);
+    render_list(frame, right[1], t, state);
     render_tabs(frame, right[2], t, state);
     render_bar(frame, right[3], t, state);
     render_gauge(frame, right[4], t, state);
@@ -420,7 +420,7 @@ fn render_table(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
     frame.render_widget(table, area);
 }
 
-fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
+fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme, state: &AnimState) {
     let block = t.block(" List + Scrollbar ").build();
     let ls = t.list_styles();
     let sbs = t.scrollbar_styles();
@@ -484,6 +484,9 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
         ),
     ];
 
+    let total = items.len();
+    let scroll_pos = (state.tick / 15) as usize % total;
+
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
@@ -491,14 +494,15 @@ fn render_list(frame: &mut Frame<'_>, area: Rect, t: &dyn Theme) {
         .highlight_style(ls.highlight)
         .highlight_symbol(ls.symbol)
         .style(ls.base);
-    frame.render_widget(list, inner);
+    let mut list_state = ratatui::widgets::ListState::default().with_selected(Some(scroll_pos));
+    frame.render_stateful_widget(list, inner, &mut list_state);
 
-    // Scrollbar on the right edge
+    // Scrollbar synced with selection
     let scrollbar =
         ratatui::widgets::Scrollbar::new(ratatui::widgets::ScrollbarOrientation::VerticalRight)
             .track_style(sbs.track)
             .thumb_style(sbs.thumb);
-    let mut scroll_state = ratatui::widgets::ScrollbarState::new(8).position(2);
+    let mut scroll_state = ratatui::widgets::ScrollbarState::new(total).position(scroll_pos);
     frame.render_stateful_widget(scrollbar, inner, &mut scroll_state);
 }
 
