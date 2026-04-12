@@ -1,6 +1,10 @@
 # Changelog
 
 
+### Misc
+
+- Update Cargo.toml dependencies
+
 ### CI
 
 - Automated release pipeline — release-plz creates tag, publish.yml publishes
